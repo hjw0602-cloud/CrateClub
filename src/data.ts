@@ -37,6 +37,7 @@ export type Review = {
   likes: number
   createdAt: string
   replies: { id: string; userId: string; text: string; createdAt: string }[]
+  user?: User
 }
 
 export type Article = {

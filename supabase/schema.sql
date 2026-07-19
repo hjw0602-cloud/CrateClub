@@ -13,6 +13,25 @@ create table public.profiles (
   created_at timestamptz not null default now()
 );
 
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  requested_nickname text;
+begin
+  requested_nickname := coalesce(new.raw_user_meta_data->>'nickname', new.raw_user_meta_data->>'name', split_part(new.email, '@', 1), 'user');
+  insert into public.profiles (id, nickname, avatar_url)
+  values (new.id, left(requested_nickname, 18) || case when exists(select 1 from public.profiles where nickname = left(requested_nickname, 18)) then '_' || substr(new.id::text, 1, 5) else '' end, new.raw_user_meta_data->>'avatar_url');
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
 create table public.artists (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -164,8 +183,11 @@ alter table public.notifications enable row level security;
 create policy "public profiles" on public.profiles for select using (true);
 create policy "own profile" on public.profiles for update using (auth.uid() = id);
 create policy "public artists" on public.artists for select using (true);
+create policy "admin artists" on public.artists for all using (exists(select 1 from public.profiles where id = auth.uid() and role = 'admin')) with check (exists(select 1 from public.profiles where id = auth.uid() and role = 'admin'));
 create policy "published releases" on public.releases for select using (status = 'published' or created_by = auth.uid());
+create policy "admin releases" on public.releases for all using (exists(select 1 from public.profiles where id = auth.uid() and role = 'admin')) with check (exists(select 1 from public.profiles where id = auth.uid() and role = 'admin'));
 create policy "public tracks" on public.tracks for select using (true);
+create policy "admin tracks" on public.tracks for all using (exists(select 1 from public.profiles where id = auth.uid() and role = 'admin')) with check (exists(select 1 from public.profiles where id = auth.uid() and role = 'admin'));
 create policy "public reviews" on public.reviews for select using (deleted_at is null);
 create policy "own review insert" on public.reviews for insert with check (auth.uid() = user_id);
 create policy "own review update" on public.reviews for update using (auth.uid() = user_id);
@@ -178,6 +200,7 @@ create policy "public follows" on public.follows for select using (true);
 create policy "own follows" on public.follows for insert with check (auth.uid() = follower_id);
 create policy "remove own follows" on public.follows for delete using (auth.uid() = follower_id);
 create policy "published articles" on public.articles for select using (status = 'published');
+create policy "editor articles" on public.articles for all using (exists(select 1 from public.profiles where id = auth.uid() and role in ('editor','admin'))) with check (exists(select 1 from public.profiles where id = auth.uid() and role in ('editor','admin')));
 create policy "public posts" on public.posts for select using (deleted_at is null);
 create policy "own posts" on public.posts for insert with check (auth.uid() = author_id);
 create policy "public comments" on public.comments for select using (deleted_at is null);
