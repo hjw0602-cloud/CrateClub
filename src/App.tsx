@@ -34,6 +34,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage {...ctx} />} />
         <Route path="/discover" element={<DiscoverPage />} />
+        <Route path="/events" element={<EventsPage />} />
         <Route path="/release/:id" element={<ReleasePage {...ctx} />} />
         <Route path="/magazine" element={<MagazinePage />} />
         <Route path="/community" element={<CommunityPage {...ctx} />} />
@@ -61,7 +62,7 @@ function Header({ dark, setDark, loggedIn, setAuthOpen, mobileOpen, setMobileOpe
   return <header className="header">
     <Link className="brand" to="/"><Disc3 size={21} /><span>{BRAND}</span></Link>
     <nav className={mobileOpen ? 'desktop-nav open' : 'desktop-nav'}>
-      <NavLink to="/discover">신보</NavLink><NavLink to="/magazine">매거진</NavLink><NavLink to="/community">커뮤니티</NavLink>
+      <NavLink to="/discover">신보</NavLink><NavLink to="/events">공연</NavLink><NavLink to="/magazine">매거진</NavLink><NavLink to="/community">커뮤니티</NavLink>
     </nav>
     <div className="header-actions">
       <Link className="icon-btn" to="/search" title="검색"><Search size={19} /></Link>
@@ -132,6 +133,16 @@ function DiscoverPage() {
     <div className="filter-row">{['ALL', 'ALBUM', 'EP', 'MIXTAPE', 'SINGLE'].map(t => <button className={type === t ? 'active' : ''} onClick={() => setType(t)} key={t}>{t}</button>)}<button className="filter-icon"><SlidersHorizontal size={16} /> 최신순</button></div>
     <div className="release-grid wide">{list.map(r => <ReleaseCard key={r.id} release={r} />)}</div>
   </div>
+}
+
+const eventItems = [
+  { id: 'e1', date: '08.02', day: 'SAT', title: 'SEOUL SOUL NIGHT', artist: 'MISO · HANA · LÉON', venue: 'YES24 LIVE HALL', status: '예매 중' },
+  { id: 'e2', date: '08.16', day: 'SAT', title: 'NOA: AFTERIMAGE LIVE', artist: 'NOA', venue: 'MUSINSA GARAGE', status: '예매 예정' },
+  { id: 'e3', date: '09.05', day: 'FRI', title: '808 ROOM SESSION', artist: 'DUSTY · YUNB · GUESTS', venue: 'NODEUL ISLAND', status: '예매 중' },
+]
+
+function EventsPage() {
+  return <div className="page section-wrap events-page"><PageTitle kicker="LIVE CALENDAR" title="공연" copy="놓치고 싶지 않은 힙합과 R&B 공연 일정을 모았습니다." /><div className="event-filter"><button className="active">전체</button><button>이번 달</button><button>서울</button><button>페스티벌</button></div><div className="event-list">{eventItems.map((event, index) => <article key={event.id}><div className="event-date"><b>{event.date}</b><span>{event.day}</span></div><div className="event-number">0{index + 1}</div><div className="event-copy"><small>{event.artist}</small><h2>{event.title}</h2><p>{event.venue}</p></div><span className={event.status === '예매 중' ? 'event-status on' : 'event-status'}>{event.status}</span><ChevronRight /></article>)}</div></div>
 }
 
 function ReleasePage(ctx: AppContext) {
