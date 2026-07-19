@@ -1,0 +1,4 @@
+onlyBuiltDependencies:
+  - esbuild
+confirmModulesPurge: false
+nodeLinker: hoisted
