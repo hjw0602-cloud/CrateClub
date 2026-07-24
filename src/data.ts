@@ -112,6 +112,10 @@ export const users: User[] = [
 ]
 
 export const initialReviews: Review[] = [
+  { id: 'rm1', releaseId: 'afterimage', userId: 'me', score: 9.1, text: '잔향이 사라진 뒤에야 멜로디의 윤곽이 더 또렷하게 남는다.', likes: 46, createdAt: '오늘', replies: [{ id: 'rpm1', userId: 'u1', text: '마지막 두 곡에서 특히 그랬어요.', createdAt: '3시간 전' }] },
+  { id: 'rm2', releaseId: 'blue-hour', userId: 'me', score: 8.6, text: '짧아서 아쉽기보다 다시 처음으로 돌아가게 만드는 EP.', likes: 31, createdAt: '어제', replies: [] },
+  { id: 'rm3', releaseId: 'no-skip', userId: 'me', score: 7.8, text: '', likes: 0, createdAt: '3일 전', replies: [] },
+  { id: 'rm4', releaseId: 'petals', userId: 'me', score: 8.9, text: '절제된 편곡 덕분에 목소리의 온도가 그대로 전해진다.', likes: 22, createdAt: '지난주', replies: [] },
   { id: 'r1', releaseId: 'afterimage', userId: 'u1', score: 9.2, text: '공백까지 편곡한 앨범. 가장 조용한 순간에 가장 많은 것이 들린다.', likes: 184, createdAt: '2시간 전', replies: [{ id: 'rp1', userId: 'u2', text: '후반부의 여백이 특히 좋았어요.', createdAt: '1시간 전' }] },
   { id: 'r2', releaseId: 'afterimage', userId: 'u2', score: 8.8, text: '첫 청취보다 두 번째, 두 번째보다 세 번째에 더 깊어지는 잔향.', likes: 97, createdAt: '5시간 전', replies: [] },
   { id: 'r3', releaseId: 'afterimage', userId: 'u3', score: 7.6, text: '프로덕션은 훌륭하지만 중반의 템포가 조금 평평하다.', likes: 42, createdAt: '어제', replies: [] },
