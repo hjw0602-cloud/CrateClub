@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { Link, NavLink, Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import { Link, NavLink, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import {
   Bell, ChevronDown, ChevronRight, Disc3, ExternalLink, Headphones, Heart, LogIn, LogOut, Menu, MessageCircle,
   Moon, MoreHorizontal, PenLine, Play, Plus, Search, Send, ShieldAlert, SlidersHorizontal,
@@ -9,6 +9,7 @@ import { articles, releases, users, type Post, type Release, type Review } from 
 import { useBackend } from './lib/backend'
 import { isDemoMode, supabase } from './lib/supabase'
 import { AlbumLoungePage, CrateProfileRoute, DiscoverHubPage, TodayPage } from './sns-pages'
+import { CreatePage, ExploreDetailPage, ExplorePage, LandingPage, MyArchivePage } from './archive-pages'
 import './sns.css'
 
 const BRAND = 'CRATEDIGGERS'
@@ -34,22 +35,15 @@ function App() {
     <Header dark={dark} setDark={setDark} loggedIn={backend.loggedIn} setAuthOpen={setAuthOpen} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} onLogout={() => supabase?.auth.signOut()} />
     <main>
       <Routes>
-        <Route path="/" element={<TodayPage />} />
-        <Route path="/discover" element={<DiscoverHubPage />} />
-        <Route path="/discover/releases" element={<DiscoverPage />} />
-        <Route path="/social" element={<CrateProfileRoute reviews={backend.reviews} follows={backend.follows} toggleFollow={backend.toggleFollow} self />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/hot-clips" element={<HotClipsPage />} />
-        <Route path="/release/:id/lounge" element={<AlbumLoungePage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/create" element={<CreatePage />} />
+        <Route path="/my-crate" element={<MyArchivePage />} />
+        <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/explore/:id" element={<ExploreDetailPage />} />
         <Route path="/release/:id" element={<ReleasePage {...ctx} />} />
-        <Route path="/magazine" element={<MagazinePage />} />
-        <Route path="/community" element={<CommunityPage {...ctx} />} />
         <Route path="/search" element={<SearchPage reviews={backend.reviews} />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/me" element={<CrateProfileRoute reviews={backend.reviews} follows={backend.follows} toggleFollow={backend.toggleFollow} self />} />
-        <Route path="/my-crate" element={<CrateProfileRoute reviews={backend.reviews} follows={backend.follows} toggleFollow={backend.toggleFollow} self />} />
-        <Route path="/user/:id" element={<CrateProfileRoute reviews={backend.reviews} follows={backend.follows} toggleFollow={backend.toggleFollow} />} />
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/me" element={<Navigate to="/my-crate" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </main>
     <MobileNav />
@@ -69,12 +63,12 @@ function Header({ dark, setDark, loggedIn, setAuthOpen, mobileOpen, setMobileOpe
   return <header className="header">
     <Link className="brand" to="/"><Disc3 size={21} /><span>{BRAND}</span></Link>
     <nav className={mobileOpen ? 'desktop-nav open' : 'desktop-nav'}>
-      <NavLink to="/" end>TODAY</NavLink><NavLink to="/discover">DISCOVER</NavLink><NavLink to="/my-crate">MY CRATE</NavLink><NavLink to="/community">COMMUNITY</NavLink>
+      <NavLink to="/create">CREATE</NavLink><NavLink to="/my-crate">MY CRATE</NavLink><NavLink to="/explore">EXPLORE</NavLink>
     </nav>
     <div className="header-actions">
       <Link className="icon-btn" to="/search" title="검색"><Search size={19} /></Link>
       <button className="icon-btn" onClick={() => setDark(!dark)} title="테마 변경">{dark ? <Sun size={19} /> : <Moon size={19} />}</button>
-      {loggedIn ? <><Link className="icon-btn desktop-only" to="/notifications" title="알림"><Bell size={19} /><i /></Link>{!isDemoMode && <button className="icon-btn desktop-only" onClick={onLogout} title="로그아웃"><LogOut size={18} /></button>}<Link className="avatar mini" to="/my-crate" title="MY CRATE">CK</Link></> : <button className="command-btn" onClick={() => setAuthOpen(true)}><LogIn size={16} /> 로그인</button>}
+      {loggedIn ? <>{!isDemoMode && <button className="icon-btn desktop-only" onClick={onLogout} title="로그아웃"><LogOut size={18} /></button>}<Link className="avatar mini" to="/my-crate" title="MY CRATE">CK</Link></> : <button className="command-btn" onClick={() => setAuthOpen(true)}><LogIn size={16} /> 로그인</button>}
       <button className="icon-btn mobile-menu" onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X /> : <Menu />}</button>
     </div>
   </header>
@@ -331,6 +325,6 @@ function AuthModal({ onClose }: { onClose: () => void }) {
   return <div className="modal-backdrop" onMouseDown={onClose}><div className="auth-modal" onMouseDown={e => e.stopPropagation()}><button className="close" onClick={onClose}><X /></button><Disc3 size={32} /><small>{BRAND}</small><h2>{signup ? '새 계정 만들기' : '다시 오신 것을 환영해요'}</h2><p>좋은 음악을 발견하고 당신의 한줄을 남겨보세요.</p><button className="kakao" onClick={kakao}>카카오로 계속하기</button><div className="or"><span>또는</span></div>{signup && <input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="닉네임" />}<input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" /><input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호" />{error && <p className="form-error">{error}</p>}{notice && <p className="form-notice">{notice}</p>}<button className="primary-btn full" disabled={busy || !email || !password || (signup && !nickname)} onClick={submit}>{busy ? '처리 중...' : signup ? '가입하기' : '이메일로 로그인'}</button><button className="text-btn" onClick={() => setSignup(!signup)}>{signup ? '이미 계정이 있나요? 로그인' : '처음이신가요? 회원가입'}</button></div></div>
 }
 
-function MobileNav() { return <nav className="mobile-nav"><NavLink to="/" end><Disc3 /><span>TODAY</span></NavLink><NavLink to="/discover"><Search /><span>DISCOVER</span></NavLink><NavLink to="/my-crate"><UserRound /><span>MY CRATE</span></NavLink><NavLink to="/community"><Users /><span>COMMUNITY</span></NavLink></nav> }
+function MobileNav() { return <nav className="mobile-nav"><NavLink to="/create"><Plus /><span>CREATE</span></NavLink><NavLink to="/my-crate"><Disc3 /><span>MY CRATE</span></NavLink><NavLink to="/explore"><Search /><span>EXPLORE</span></NavLink></nav> }
 
 export default App

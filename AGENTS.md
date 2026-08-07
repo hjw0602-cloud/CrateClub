@@ -1,4 +1,36 @@
-# 음악 커뮤니티 프로젝트 안내
+# CRATEDIGGERS 프로젝트 안내
+
+## 현재 확정 제품 정의 (2026-07-25)
+
+**“CRATEDIGGERS는 앨범으로 자신만의 음악 취향 보드를 만들고, 평가와 감상 기록을 장기간 축적하며, 완성된 결과물을 공유하는 개인 음악 아카이브 도구다.”**
+
+- 핵심 문구는 `DIG. COLLECT. DISPLAY.`다.
+- 초기 내비게이션은 `CREATE / MY CRATE / EXPLORE` 세 개다.
+- CREATE는 회원가입 없이 주제·템플릿·앨범을 고르고 결과 미리보기까지 진행할 수 있는 CRATEPRINT Studio다.
+- MY CRATE는 CRATEPRINT ARCHIVE와 ALBUM ARCHIVE(LISTENING LOG)로 구성한다.
+- EXPLORE는 공개에 명시적으로 동의한 CRATEPRINT와 공식 큐레이터 예시만 노출하는 작품 중심 갤러리다.
+- 기본 공개 상태는 비공개이며, 일반 SNS 피드·댓글·팔로우·DM을 초기 핵심으로 만들지 않는다.
+- 현재 제작 가능한 템플릿은 `DISPLAY SHELF / VINYL PEEK / TABLE SPREAD / QUIET RACK / RANKED CRATE / CLASSIC GRID` 여섯 가지다.
+- 공통 CRATEPRINT 데이터는 앨범 선택을 공유하며 템플릿을 바꿔 즉시 다시 볼 수 있게 설계한다.
+- 초기 테마는 `BLACK METAL / FROSTED ACRYLIC / WARM GALLERY`, 출력 비율은 `4:5 / 9:16 / 1:1 / 16:9`다.
+- DISPLAY SHELF는 기존의 대표 LP와 8장 보조 LP를 선반에 진열하는 오리지널 디자인을 유지한다.
+- `VINYL PEEK`는 정돈된 배치에서 커버 뒤로 바이닐이 은은하게 보이는 템플릿이다.
+- `TABLE SPREAD`는 위에서 내려다본 LP 산개 구성으로, 중앙 대표 앨범과 2~6도 안의 작은 회전·제한된 겹침을 사용한다.
+- `QUIET RACK`은 거의 보이지 않는 투명 아크릴 레일 위에 LP를 배치하는 갤러리형 템플릿이다.
+- TODAY, 라이브 라운지, 실시간 채팅, COMMUNITY, FOLLOWING/FOR YOU와 사용자 추천은 초기 MVP 라우팅과 내비게이션에서 숨기고 후속 기능 코드로 격리한다.
+- 기존 앨범·평가 데이터와 관련 코드는 불필요하게 삭제하지 않는다.
+
+## 현재 공개 화면
+
+- `/` 제품 랜딩
+- `/create` CRATEPRINT 제작 도구
+- `/my-crate` 개인 보관함
+- `/explore` 공개 CRATEPRINT 갤러리
+- `/explore/:id` 공개 결과물 상세
+- `/release/:id` 앨범 정보와 감상 기록
+- `/search` 공통 검색
+
+> 아래 2026-07-23 TODAY·라운지 중심 정의와 더 오래된 Social·커뮤니티 중심 정의는 폐기된 방향의 기록이다. 현재 구현 기준으로 사용하지 않는다.
 
 ## 현재 확정 제품 정의 (2026-07-23)
 

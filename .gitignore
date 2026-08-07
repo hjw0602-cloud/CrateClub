@@ -1,7 +1,10 @@
 node_modules
 dist
+.pnpm-store
 .env
 .dev.vars
 .wrangler
 *.tsbuildinfo
+*.bundle
 screenshots/
+work/

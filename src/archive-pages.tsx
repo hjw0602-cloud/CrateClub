@@ -1,0 +1,102 @@
+﻿import { useMemo, useState } from 'react'
+import { ArrowRight, Check, ChevronLeft, ChevronRight, Copy, Disc3, Eye, Grid3X3, ImageDown, Layers3, Lock, PenLine, Plus, Search, Share2, Sparkles, Star, Trash2 } from 'lucide-react'
+import { Link, useParams } from 'react-router-dom'
+import { initialReviews, releases } from './data'
+import { templateLabels, topicOptions, type Crateprint, type CrateprintRatio, type CrateprintTemplate, type CrateprintTheme } from './crateprint'
+import './archive.css'
+
+const defaultAlbumIds = ['afterimage', 'blue-hour', 'no-skip', 'petals', 'heat-check', 'soft-focus', 'blue-hour', 'afterimage', 'petals']
+
+const officialBoards: Crateprint[] = [
+  makeBoard('official-01', 'HEAVY ROTATION', '요즘 가장 자주 꺼내 듣는 아홉 장', 'display-shelf', 'black-metal', true),
+  makeBoard('official-02', 'VINYL NOTES', '커버 뒤로 드러나는 아홉 장의 물성', 'vinyl-peek', 'frosted-acrylic', true),
+  makeBoard('official-03', 'ON THE TABLE', '지금의 취향을 테이블 위에 펼치다', 'table-spread', 'frosted-acrylic', true),
+  makeBoard('official-04', 'QUIET SELECTION', '조용한 진열로 남긴 이번 달의 기록', 'quiet-rack', 'warm-gallery', true),
+  makeBoard('official-05', '2026 SO FAR', '올해의 반환점을 지나며 남긴 순위', 'ranked-crate', 'warm-gallery', true),
+  makeBoard('official-06', 'LATE NIGHT R&B', '불을 낮추고 오래 듣는 앨범들', 'classic-grid', 'black-metal', true),
+]
+
+officialBoards.push(makeBoard('official-07', 'FRESH FROM THE CRATE', 'Records pulled, overlapped and left exactly where the digging happened.', 'crate-pile', 'black-metal', true))
+
+function makeBoard(id: string, title: string, description: string, templateType: CrateprintTemplate, _theme: CrateprintTheme, isPublic = false): Crateprint {
+  const now = '2026.07.25'
+  return { id, ownerId: id.startsWith('official') ? 'official' : 'me', ownerName: id.startsWith('official') ? 'CRATEDIGGERS CURATOR' : 'cratekeeper', title, description, prompt: '나를 설명하는 앨범 9장', templateType, theme: 'black-metal', outputRatio: '4:5', selectedAlbums: defaultAlbumIds.map((releaseId, order) => ({ releaseId, order, score: 8.1 + order / 10 })), heroAlbumId: defaultAlbumIds[0], showScores: true, showNotes: true, isPublic, createdAt: now, updatedAt: now }
+}
+
+export function LandingPage() {
+  return <div className="archive-landing">
+    <section className="landing-hero">
+      <div className="landing-copy"><span>PERSONAL MUSIC ARCHIVE</span><h1>당신을 설명하는<br />앨범을 진열하세요.</h1><p>좋아하는 앨범을 골라 나만의 CRATEPRINT를 만들고,<br />시간이 지날수록 음악 취향을 아카이브하세요.</p><div><Link className="primary-btn" to="/create">지금 만들기 <ArrowRight /></Link><a className="outline-btn" href="#templates">템플릿 보기</a></div><small>회원가입 없이 제작과 미리보기까지</small></div>
+      <div className="landing-result"><CrateprintPreview board={officialBoards[0]} compact /><div className="landing-result-label"><span>DISPLAY SHELF / 4:5</span><b>DIG. COLLECT. DISPLAY.</b></div></div>
+    </section>
+    <section id="templates" className="landing-templates section-wrap"><header><span>SEVEN WAYS TO DISPLAY</span><h2>같은 앨범, 다른 취향의 형태</h2><p>앨범 선택은 그대로 유지한 채 언제든 템플릿을 바꿔 비교할 수 있습니다.</p></header><div>{(['display-shelf','vinyl-peek','table-spread','quiet-rack','ranked-crate','classic-grid','crate-pile'] as CrateprintTemplate[]).map((template,index) => <article key={template}><CrateprintPreview board={{ ...officialBoards[index], templateType: template }} compact /><span>0{index + 1}</span><h3>{templateLabels[template]}</h3><p>{{'display-shelf':'대표 LP와 여덟 장을 선반에 진열한 오리지널','vinyl-peek':'커버 뒤로 바이닐이 은근히 보이는 정돈형','table-spread':'LP를 테이블 위에 느슨하게 펼친 오버헤드형','crate-pile':'바닥에 꺼내 놓은 LP가 중앙으로 겹쳐지는 더미형','quiet-rack':'투명 아크릴 레일 위에 놓인 갤러리형','ranked-crate':'순위를 음악 차트처럼 편집한 보드','classic-grid':'익숙한 격자를 공유 포스터로 확장한 보드'}[template]}</p></article>)}</div></section>
+    <section className="landing-flow section-wrap"><span>HOW IT WORKS</span><div>{[['01','DIG','앨범을 찾고'],['02','COLLECT','보드에 담고'],['03','DISPLAY','완성해 공유하고'],['04','ARCHIVE','시간과 함께 쌓습니다']].map(item => <article key={item[0]}><b>{item[0]}</b><h3>{item[1]}</h3><p>{item[2]}</p></article>)}</div><Link to="/explore">공개 CRATEPRINT 둘러보기 <ArrowRight /></Link></section>
+  </div>
+}
+
+export function CreatePage() {
+  const [step, setStep] = useState(1)
+  const [topic, setTopic] = useState(topicOptions[0])
+  const [template, setTemplate] = useState<CrateprintTemplate>('classic-grid')
+  const [ratio, setRatio] = useState<CrateprintRatio>('4:5')
+  const [title, setTitle] = useState('HEAVY ROTATION')
+  const [description, setDescription] = useState('요즘 가장 자주 꺼내 듣는 아홉 장')
+  const [albumIds, setAlbumIds] = useState(defaultAlbumIds)
+  const [query, setQuery] = useState('')
+  const createTemplates = [
+    ['classic-grid', Grid3X3, '익숙한 3 × 3 포스터'],
+    ['display-shelf', Disc3, '대표 LP를 진열하는 선반형'],
+    ['crate-pile', Layers3, '겹쳐 꺼내 놓은 LP 더미형'],
+  ] as const
+  const board = useMemo(() => ({ ...makeBoard('draft-local', title, description, template, 'black-metal'), prompt: topic, outputRatio: ratio, selectedAlbums: albumIds.map((releaseId, order) => ({ releaseId, order })), heroAlbumId: albumIds[0] }), [title, description, template, topic, ratio, albumIds])
+  const swap = (index: number, delta: number) => { const target = index + delta; if (target < 0 || target >= albumIds.length) return; const next = [...albumIds]; [next[index], next[target]] = [next[target], next[index]]; setAlbumIds(next) }
+  const replace = (index: number, releaseId: string) => { const next = [...albumIds]; next[index] = releaseId; setAlbumIds(next) }
+  const saveLocal = () => localStorage.setItem('cd-crateprint-draft', JSON.stringify(board))
+
+  return <div className="create-page section-wrap">
+    <header className="create-heading"><div><span>CREATE / NEW CRATEPRINT</span><h1>앨범으로<br />취향 보드 만들기</h1></div><p>템플릿은 미리보기 옆에서 바로 바꿀 수 있습니다.<br />앨범 구성은 그대로 유지됩니다.</p></header>
+    <nav className="create-progress">{['주제','앨범','편집','출력'].map((label,index) => <button className={step === index + 1 ? 'active' : step > index + 1 ? 'done' : ''} onClick={() => setStep(index + 1)} key={label}><b>{step > index + 1 ? <Check /> : index + 1}</b><span>{label}</span></button>)}</nav>
+    <div className="create-workspace"><section className="create-controls">
+      {step === 1 && <div className="control-step"><StepTitle index="01" title="무엇을 만들까요?" copy="주제를 고르거나 빈 보드에서 시작하세요." /><div className="topic-list">{topicOptions.map(item => <button className={topic === item ? 'active' : ''} onClick={() => setTopic(item)} key={item}>{item}<ChevronRight /></button>)}</div></div>}
+      {step === 2 && <div className="control-step"><StepTitle index="02" title="앨범 아홉 장을 담으세요" copy="검색 결과에서 선택한 슬롯으로 앨범을 교체합니다." /><label className="album-search"><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="앨범 또는 아티스트 검색" /></label><div className="album-results">{releases.filter(item => `${item.title} ${item.artist}`.toLowerCase().includes(query.toLowerCase())).map(release => <article key={release.id}><img src={release.cover} alt="" /><div><b>{release.title}</b><small>{release.artist}</small></div><button onClick={() => replace(albumIds.length - 1, release.id)}><Plus /> 담기</button></article>)}</div></div>}
+      {step === 3 && <div className="control-step"><StepTitle index="03" title="순서와 이야기를 편집하세요" copy="첫 번째 슬롯이 대표 앨범입니다." /><label className="text-field">제목<input value={title} onChange={event => setTitle(event.target.value)} /></label><label className="text-field">한 줄 설명<textarea value={description} onChange={event => setDescription(event.target.value)} /></label><div className="order-list">{albumIds.map((id,index) => { const album = releases.find(item => item.id === id) || releases[0]; return <article key={`${id}-${index}`}><b>{index === 0 ? 'HERO' : String(index + 1).padStart(2,'0')}</b><img src={album.cover} alt="" /><p>{album.title}<small>{album.artist}</small></p><button onClick={() => swap(index,-1)} aria-label="앞으로"><ChevronLeft /></button><button onClick={() => swap(index,1)} aria-label="뒤로"><ChevronRight /></button></article> })}</div></div>}
+      {step === 4 && <div className="control-step"><StepTitle index="04" title="출력 비율" copy="공유할 장소에 맞는 비율만 선택하세요." /><p className="fixed-theme-note"><Disc3 /> BLACK BACKGROUND · SINGLE THEME</p><h4>OUTPUT RATIO</h4><div className="ratio-select">{(['4:5','9:16','1:1','16:9'] as CrateprintRatio[]).map(item => <button className={ratio === item ? 'active' : ''} onClick={() => setRatio(item)} key={item}>{item}</button>)}</div><label className="public-check"><input type="checkbox" /> 완성 후 EXPLORE 공개 여부 선택 <small>기본값은 비공개입니다.</small></label></div>}
+      <footer><button onClick={() => setStep(Math.max(1,step - 1))} disabled={step === 1}><ChevronLeft /> 이전</button>{step < 4 ? <button className="primary-btn" onClick={() => setStep(step + 1)}>다음 단계 <ChevronRight /></button> : <button className="primary-btn" onClick={saveLocal}><ImageDown /> 미리보기 저장</button>}</footer>
+    </section><aside className="create-preview"><div className="preview-head"><div><span>LIVE PREVIEW</span><b>{templateLabels[template]}</b></div><span>{ratio}</span></div><div className="preview-template-switcher">{createTemplates.map(([value,Icon,copy]) => <button className={template === value ? 'active' : ''} onClick={() => setTemplate(value)} key={value}><Icon /><span><b>{templateLabels[value]}</b><small>{copy}</small></span>{template === value && <Check />}</button>)}</div><CrateprintPreview board={board} /><p>템플릿을 누르면 같은 앨범 구성으로 바로 미리보기가 바뀝니다.</p></aside></div>
+  </div>
+}
+function StepTitle({ index, title, copy }: { index: string; title: string; copy: string }) { return <header className="step-title"><span>{index}</span><h2>{title}</h2><p>{copy}</p></header> }
+
+export function MyArchivePage() {
+  const boards = [makeBoard('mine-01','JULY ROTATION','지금의 나를 설명하는 아홉 장','display-shelf','black-metal'),makeBoard('mine-02','2026 SO FAR','상반기 가장 오래 들은 앨범','ranked-crate','warm-gallery')]
+  return <div className="my-archive section-wrap"><header><div><span>MY CRATE / PERSONAL ARCHIVE</span><h1>만든 것과 들은 것이<br />시간순으로 쌓이는 곳</h1></div><Link className="primary-btn" to="/create"><Plus /> 새 CRATEPRINT</Link></header>
+    <section className="archive-section"><div className="archive-title"><div><span>CRATEPRINT ARCHIVE</span><h2>내가 만든 보드</h2></div><p>기본 공개 상태는 비공개입니다.</p></div><div className="board-archive">{boards.map((board,index) => <article key={board.id}><CrateprintPreview board={board} compact /><div><span><Lock /> PRIVATE</span><h3>{board.title}</h3><p>{templateLabels[board.templateType]} · {board.createdAt}</p><footer><button><PenLine /> 다시 편집</button><button><Copy /> 복제</button><button><Share2 /> 공개 설정</button><button aria-label="삭제"><Trash2 /></button></footer></div></article>)}</div></section>
+    <section className="archive-section"><div className="archive-title"><div><span>ALBUM ARCHIVE</span><h2>앨범 감상 기록</h2></div><div className="archive-filters">{['전체','듣고 싶어요','듣는 중','들었어요'].map(item => <button key={item}>{item}</button>)}</div></div><div className="album-archive">{releases.map((release,index) => <article key={release.id}><img src={release.cover} alt="" /><div><span>{index % 3 === 0 ? '듣는 중' : '들었어요'}</span><h3>{release.title}</h3><p>{release.artist}</p><b><Star fill="currentColor" /> {(8.1 + index / 10).toFixed(1)}</b><small>{initialReviews.find(review => review.releaseId === release.id)?.text || '감상 기록을 남겨보세요.'}</small></div><aside><span>사용된 CRATEPRINT</span><b>{index % 2 + 1}</b></aside></article>)}</div></section>
+  </div>
+}
+
+export function ExplorePage() {
+  const [filter,setFilter] = useState('FEATURED')
+  return <div className="explore-page section-wrap"><header><span>PUBLIC CRATEPRINT GALLERY</span><h1>완성된 취향에서<br />다음 보드를 시작하세요.</h1><p>공개에 동의한 결과물과 CRATEDIGGERS 공식 예시만 전시됩니다.</p></header><nav>{['FEATURED','NEW','DISPLAY SHELF','VINYL PEEK','TABLE SPREAD','CRATE PILE','QUIET RACK','RANKED CRATE','CLASSIC GRID'].map(item => <button className={filter === item ? 'active' : ''} onClick={() => setFilter(item)} key={item}>{item}</button>)}</nav><div className="explore-grid">{officialBoards.map((board,index) => <Link to={`/explore/${board.id}`} key={board.id}><CrateprintPreview board={board} compact /><div><span>{index === 0 && 'OFFICIAL CURATOR · '}{templateLabels[board.templateType]}</span><h2>{board.title}</h2><p>{board.prompt} · 9 ALBUMS · {board.createdAt}</p></div></Link>)}</div></div>
+}
+
+export function ExploreDetailPage() {
+  const { id } = useParams()
+  const board = officialBoards.find(item => item.id === id) || officialBoards[0]
+  return <div className="explore-detail section-wrap"><Link to="/explore"><ChevronLeft /> EXPLORE로 돌아가기</Link><div className="explore-detail-grid"><CrateprintPreview board={board} /><aside><span>OFFICIAL CRATEDIGGERS CURATOR</span><h1>{board.title}</h1><p>{board.description}</p><dl><div><dt>주제</dt><dd>{board.prompt}</dd></div><div><dt>템플릿</dt><dd>{templateLabels[board.templateType]}</dd></div><div><dt>앨범</dt><dd>{board.selectedAlbums.length} RECORDS</dd></div></dl><Link className="primary-btn" to="/create"><Sparkles /> 같은 템플릿으로 만들기</Link><Link className="outline-btn" to="/create">같은 주제로 만들기</Link></aside></div><section className="used-albums"><span>RECORDS IN THIS CRATEPRINT</span><div>{board.selectedAlbums.map((item,index) => { const album = releases.find(release => release.id === item.releaseId) || releases[0]; return <Link to={`/release/${album.id}`} key={`${item.releaseId}-${index}`}><b>{String(index + 1).padStart(2,'0')}</b><img src={album.cover} alt="" /><span>{album.title}<small>{album.artist}</small></span></Link> })}</div></section></div>
+}
+
+function CrateprintPreview({ board, compact = false }: { board: Crateprint; compact?: boolean }) {
+  const albums = board.selectedAlbums.map(item => releases.find(release => release.id === item.releaseId) || releases[0])
+  const hero = releases.find(item => item.id === board.heroAlbumId) || albums[0]
+  const spreadAlbums = [hero, ...albums.filter(album => album.id !== hero.id)].slice(0, 9)
+  return <div className={`archive-print template-${board.templateType} theme-${board.theme} ratio-${board.outputRatio.replace(':','-')} ${compact ? 'compact' : ''}`}><header><span>CRATEPRINT / {templateLabels[board.templateType]}</span><b>CRATE INDEX 09</b></header><h3>{board.title}</h3><p>{board.description}</p>
+    {board.templateType === 'display-shelf' && <div className="print-shelf"><figure className="print-hero"><i /><img src={hero.cover} alt="" /><figcaption><b>NOW DISPLAYING</b><span>{hero.title}</span></figcaption></figure><div>{albums.slice(1).map((album,index) => <figure key={`${album.id}-${index}`}><i /><img src={album.cover} alt="" /><b>{String(index + 2).padStart(2,'0')}</b></figure>)}</div></div>}
+    {board.templateType === 'vinyl-peek' && <div className="print-peek">{spreadAlbums.map((album,index) => <figure className={index === 0 ? 'peek-hero' : ''} key={`${album.id}-${index}`}><i /><img src={album.cover} alt="" /><b>{String(index + 1).padStart(2,'0')}</b></figure>)}</div>}
+    {board.templateType === 'table-spread' && <div className="print-spread" aria-label="위에서 내려다본 LP 컬렉션">{spreadAlbums.map((album,index) => <figure className={index === 0 ? 'spread-hero' : ''} key={`${album.id}-${index}`}><i aria-hidden="true" /><img src={album.cover} alt={`${album.artist} ${album.title}`} /><figcaption><b>{String(index + 1).padStart(2,'0')}</b>{index === 0 && <span>HERO RECORD</span>}</figcaption></figure>)}</div>}
+    {board.templateType === 'crate-pile' && <div className="print-crate-pile" aria-label="바닥 위에 겹쳐 펼친 LP 컬렉션">{albums.slice(0,9).map((album,index) => <figure className={index === 0 ? 'pile-hero' : ''} key={`${album.id}-${index}`}><img src={album.cover} alt={`${album.artist} ${album.title}`} /><figcaption><b>{index === 0 ? 'HERO' : String(index + 1).padStart(2,'0')}</b></figcaption></figure>)}</div>}
+    {board.templateType === 'quiet-rack' && <div className="print-rack">{spreadAlbums.map((album,index) => <figure className={index === 0 ? 'rack-hero' : ''} key={`${album.id}-${index}`}><i /><img src={album.cover} alt="" /><b>{String(index + 1).padStart(2,'0')}</b></figure>)}</div>}
+    {board.templateType === 'ranked-crate' && <div className="print-ranked">{albums.map((album,index) => <figure key={`${album.id}-${index}`}><b>{String(index + 1).padStart(2,'0')}</b><img src={album.cover} alt="" /><figcaption>{album.title}</figcaption></figure>)}</div>}
+    {board.templateType === 'classic-grid' && <div className="print-grid">{albums.map((album,index) => <figure key={`${album.id}-${index}`}><img src={album.cover} alt="" /><b>{String(index + 1).padStart(2,'0')}</b></figure>)}</div>}
+    <footer><span>{board.ownerName} · {board.createdAt}</span><b>DIG. COLLECT. DISPLAY. · CRATEDIGGERS</b></footer></div>
+}
