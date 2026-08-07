@@ -63,11 +63,12 @@ export type Post = {
 }
 
 const musicPhoto = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=85`
+const localAsset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
 
 export const releases: Release[] = [
   {
     id: 'afterimage', title: 'AFTERIMAGE', artist: 'NOA', type: 'ALBUM', date: '2026.07.18',
-    genres: ['Alternative R&B', 'Neo Soul'], cover: '/images/featured-cover.png', score: 8.7, ratings: 184,
+    genres: ['Alternative R&B', 'Neo Soul'], cover: localAsset('images/featured-cover.png'), score: 8.7, ratings: 184,
     description: '침묵과 잔향 사이를 오가는 열두 개의 장면. NOA가 3년 만에 내놓은 두 번째 정규작.',
     tracks: ['Trace', 'Pale Blue', 'Pressure', 'No Signal', 'Afterimage', 'Soft Landing', 'Static Bloom', 'Home'],
     links: { spotify: 'https://open.spotify.com', apple: 'https://music.apple.com', youtube: 'https://music.youtube.com' },
@@ -124,7 +125,7 @@ export const initialReviews: Review[] = [
 ]
 
 export const articles: Article[] = [
-  { id: 'a1', category: '비평', title: '조용한 앨범이 더 크게 남는 방식', deck: 'NOA의 AFTERIMAGE에서 침묵은 빈칸이 아니라 악기다.', date: '2026.07.19', readTime: '8분', cover: '/images/featured-cover.png' },
+  { id: 'a1', category: '비평', title: '조용한 앨범이 더 크게 남는 방식', deck: 'NOA의 AFTERIMAGE에서 침묵은 빈칸이 아니라 악기다.', date: '2026.07.19', readTime: '8분', cover: localAsset('images/featured-cover.png') },
   { id: 'a2', category: '큐레이션', title: '새벽 두 시를 위한 7개의 트랙', deck: '도시가 가장 느리게 움직이는 시간에 듣는 R&B.', date: '2026.07.17', readTime: '5분', cover: musicPhoto('photo-1524368535928-5b5e00ddc76b') },
   { id: 'a3', category: '리뷰', title: '샘플의 먼지까지 남겨둔 랩', deck: 'YUNB의 NO SKIP은 매끈함 대신 질감을 택한다.', date: '2026.07.16', readTime: '6분', cover: musicPhoto('photo-1521337581100-8ca9a73a5f79') },
 ]

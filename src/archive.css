@@ -362,4 +362,17 @@
 .archive-print.ratio-16-9.template-crate-pile .print-crate-pile figure:nth-child(8){left:60%;top:62%;z-index:5;transform:rotate(8deg)}
 .archive-print.ratio-16-9.template-crate-pile .print-crate-pile figure:nth-child(9){width:23%;left:38.5%;top:58%;z-index:9;transform:rotate(1deg)}
 
+/* Keep CRATEPRINT cover art readable in shared-poster slots.
+   The poster itself may crop overflowing records, but album images should not be cropped inside their jackets. */
+.archive-print .print-spread img,
+.archive-print .print-ranked img,
+.archive-print .print-grid img,
+.archive-print .print-shelf img,
+.archive-print .print-peek img,
+.archive-print .print-rack img,
+.archive-print .print-crate-pile img{
+  object-fit:contain;
+  background:#0d0f12;
+}
+
 
