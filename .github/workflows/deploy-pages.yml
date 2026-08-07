@@ -40,7 +40,13 @@ jobs:
         run: pnpm run build
 
       - name: Add single-page app fallback
-        run: cp dist/index.html dist/404.html
+        run: |
+          cp dist/index.html dist/404.html
+          mkdir -p dist/create dist/my-crate dist/explore dist/search
+          cp dist/index.html dist/create/index.html
+          cp dist/index.html dist/my-crate/index.html
+          cp dist/index.html dist/explore/index.html
+          cp dist/index.html dist/search/index.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
