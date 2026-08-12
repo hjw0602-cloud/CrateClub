@@ -1,5 +1,5 @@
 ﻿import { useMemo, useState } from 'react'
-import { ArrowRight, Check, ChevronLeft, ChevronRight, Copy, Disc3, Eye, Grid3X3, ImageDown, Layers3, Lock, PenLine, Plus, Save, Search, Share2, Sparkles, Star, Trash2 } from 'lucide-react'
+import { ArrowRight, Check, ChevronLeft, ChevronRight, Copy, Disc3, Eye, Grid3X3, Heart, ImageDown, Layers3, Lock, MessageCircle, PenLine, Plus, Save, Search, Share2, Sparkles, Star, Trash2 } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { initialReviews, releases, users } from './data'
 import { templateLabels, type Crateprint, type CrateprintTemplate, type CrateprintTheme } from './crateprint'
@@ -76,9 +76,25 @@ export function MyArchivePage() {
   </div>
 }
 
+const communityPosts = {
+  '국내 음악': [
+    { title: '요즘 국내 R&B 프로덕션에서 가장 인상적인 변화', body: '질감이 훨씬 다채로워진 것 같아요. 최근 좋았던 앨범도 같이 이야기해봐요.', author: '808room', time: '12분 전', likes: 31, comments: 12, tags: ['R&B','프로덕션'] },
+    { title: '이번 주 국내 신보 중 가장 많이 들은 앨범', body: '첫인상과 반복해서 들었을 때 느낌이 달라진 앨범이 있었나요?', author: 'cratekeeper', time: '48분 전', likes: 24, comments: 18, tags: ['신보','추천'] },
+    { title: '한국 힙합 올해의 앨범 후보를 골라본다면', body: '아직 반기가 남았지만 지금까지의 개인적인 후보가 궁금합니다.', author: 'liner.notes', time: '2시간 전', likes: 17, comments: 29, tags: ['K-Hip-Hop','AOTY'] },
+  ],
+  '해외 음악': [
+    { title: 'Alternative R&B 신보 같이 들어요', body: '공간감과 보컬 프로덕션이 좋은 최근 앨범들을 모아봅시다.', author: 'soularchive', time: '8분 전', likes: 42, comments: 21, tags: ['Alternative R&B','신보'] },
+    { title: '올해 나온 해외 힙합 앨범 중 재평가한 작품', body: '처음에는 평범했는데 다시 들을수록 좋아진 앨범이 있나요?', author: '808room', time: '1시간 전', likes: 28, comments: 16, tags: ['Hip-Hop','재평가'] },
+    { title: '밤에 듣기 좋은 Neo Soul 추천', body: '차분하지만 너무 처지지 않는 앨범을 찾고 있어요.', author: 'liner.notes', time: '어제', likes: 53, comments: 34, tags: ['Neo Soul','추천'] },
+  ],
+}
+
 export function ExplorePage() {
-  const [filter,setFilter] = useState('FEATURED')
-  return <div className="explore-page section-wrap"><header><span>PUBLIC CRATEPRINT GALLERY</span><h1>완성된 취향에서<br />다음 보드를 시작하세요.</h1><p>공개에 동의한 결과물과 CRATEDIGGERS 공식 예시만 전시됩니다.</p></header><nav>{['FEATURED','NEW','DISPLAY SHELF','VINYL PEEK','TABLE SPREAD','CRATE PILE','QUIET RACK','RANKED CRATE','CLASSIC GRID'].map(item => <button className={filter === item ? 'active' : ''} onClick={() => setFilter(item)} key={item}>{item}</button>)}</nav><div className="explore-grid">{officialBoards.map((board,index) => <Link to={`/explore/${board.id}`} key={board.id}><CrateprintPreview board={board} compact /><div><span>{index === 0 && 'OFFICIAL CURATOR · '}{templateLabels[board.templateType]}</span><h2>{board.title}</h2><p>{board.prompt} · 9 ALBUMS · {board.createdAt}</p></div></Link>)}</div></div>
+  const [tab,setTab] = useState<'국내 음악' | '해외 음악' | 'CRATE GALLERY'>('국내 음악')
+  const posts = tab === 'CRATE GALLERY' ? [] : communityPosts[tab]
+  return <div className="explore-page board-page section-wrap"><header><span>MUSIC COMMUNITY</span><h1>BOARD</h1><p>음악에 관해 이야기하고, 각자의 CRATE를 꺼내 보여주는 공간입니다.</p></header><nav className="board-tabs">{(['국내 음악','해외 음악','CRATE GALLERY'] as const).map(item => <button className={tab === item ? 'active' : ''} onClick={() => setTab(item)} key={item}>{item}</button>)}</nav>
+    {tab !== 'CRATE GALLERY' ? <section className="community-board"><header><div><span>{tab === '국내 음악' ? 'KOREAN MUSIC' : 'GLOBAL MUSIC'}</span><h2>{tab}</h2></div><button className="primary-btn"><PenLine /> 글쓰기</button></header><div className="community-post-list">{posts.map((post,index) => <article key={post.title}><b>{String(index + 1).padStart(2,'0')}</b><div><div className="post-tags">{post.tags.map(tag => <span key={tag}>{tag}</span>)}</div><h3>{post.title}</h3><p>{post.body}</p><small>{post.author} · {post.time}</small></div><aside><span><Heart /> {post.likes}</span><span><MessageCircle /> {post.comments}</span><ChevronRight /></aside></article>)}</div></section> : <section className="crate-gallery"><header><div><span>SHOW YOUR CRATE</span><h2>CRATE GALLERY</h2><p>공개한 CRATEPRINT를 전시하고 서로의 취향을 발견하세요.</p></div><Link className="primary-btn" to="/create"><Plus /> 내 CRATE 만들기</Link></header><div className="explore-grid">{officialBoards.map((board,index) => <Link to={`/board/${board.id}`} key={board.id}><CrateprintPreview board={board} compact /><div><span>{index === 0 && 'OFFICIAL CURATOR · '}{templateLabels[board.templateType]}</span><h2>{board.title}</h2><p>{board.ownerName} · 9 ALBUMS · {board.createdAt}</p></div></Link>)}</div></section>}
+  </div>
 }
 
 export function ExploreDetailPage() {
