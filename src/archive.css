@@ -13,6 +13,9 @@
 .create-control-block{padding:0 0 30px;margin-bottom:30px;border-bottom:1px solid var(--line)}
 .create-control-block:last-child{margin-bottom:0;border-bottom:0}
 .create-control-block .order-list{margin-top:18px}
+.template-control{margin-top:22px}
+.template-control>span{display:block;margin-bottom:8px;font-size:9px;font-weight:800}
+.template-control .preview-template-switcher{margin-bottom:0}
 .output-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .output-actions button{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;min-height:42px}
 .output-actions button:first-child{grid-column:1/-1}
