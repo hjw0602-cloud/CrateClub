@@ -10,12 +10,13 @@
 @media(max-width:640px){.landing-hero{padding:46px 18px 90px}.landing-copy h1{font-size:48px}.landing-copy p br{display:none}.landing-copy>div{display:grid}.landing-result{padding:20px 10px}.landing-templates,.landing-flow{padding-top:62px;padding-bottom:75px}.landing-templates>div,.explore-grid{grid-template-columns:1fr}.landing-flow>div{grid-template-columns:1fr 1fr}.create-page,.my-archive,.explore-page,.explore-detail{padding:30px 15px 90px}.create-heading,.my-archive>header{display:block}.create-heading h1,.my-archive>header h1,.explore-page>header h1{font-size:43px}.create-heading>p{font-size:11px}.create-progress button{justify-content:center}.create-progress button span{display:none}.create-workspace{display:flex;flex-direction:column;gap:25px}.create-preview{order:-1;padding:12px}.create-preview>.archive-print{max-height:68vh;width:auto;max-width:100%}.theme-select{grid-template-columns:1fr}.board-archive article{grid-template-columns:140px 1fr;gap:13px}.board-archive article h3{font-size:17px}.board-archive footer button{padding:6px}.album-archive article{grid-template-columns:60px 1fr}.album-archive img{width:60px;height:60px}.album-archive aside{display:none}.archive-title{display:block}.archive-filters{margin-top:12px;flex-wrap:wrap}.explore-page>nav{overflow:auto}.explore-page>nav button{white-space:nowrap}.explore-detail-grid h1{font-size:42px}.used-albums>div{grid-template-columns:1fr}.archive-print>h3{font-size:25px}.archive-print>p{font-size:7px}.print-spread figure{filter:drop-shadow(0 2px 3px #0002)}}
 
 /* Single-page CREATE workspace */
-.create-page:before,.review-page:before,.board-page:before,.my-archive:before{display:block;margin:0 0 28px;padding:0 0 18px;border-bottom:1px solid var(--line);font-size:14px;line-height:1.6;color:var(--muted)}
+.create-page:before,.review-page:before,.board-page:before,.my-archive:before{display:block;margin:0 0 32px;padding:0 0 20px;border-bottom:1px solid var(--line);font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-size:21px;line-height:1.45;letter-spacing:0;color:var(--ink)}
 .create-page:before{content:'좋아하는 앨범을 골라 나만의 CRATEPRINT를 만드세요.'}
 .review-page:before{content:'새로 나온 음악을 발견하고, 별점과 한줄평을 남겨보세요.'}
 .board-page:before{content:'음악에 관해 이야기하고, 각자의 CRATE를 꺼내 보여주는 공간입니다.'}
 .my-archive:before{content:'내 음악 취향과 만든 CRATE, 감상 기록을 한곳에서 확인하세요.'}
 .review-page-head,.board-page>header{display:none}
+@media(max-width:640px){.create-page:before,.review-page:before,.board-page:before,.my-archive:before{margin-bottom:24px;padding-bottom:16px;font-size:18px;line-height:1.5}}
 .my-profile{display:grid!important;grid-template-columns:minmax(320px,1fr) auto auto;align-items:center!important;gap:34px;padding:26px 0 46px!important}
 .my-profile-person{display:flex;align-items:center;gap:20px;min-width:0}
 .my-profile-avatar{flex:0 0 88px;width:88px;height:88px;display:grid;place-items:center;background:var(--ink);color:var(--paper);font-size:24px;font-weight:900}
