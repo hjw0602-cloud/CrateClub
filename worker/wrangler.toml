@@ -6,5 +6,5 @@ compatibility_date = "2026-08-12"
 crons = ["17 1 * * *"]
 
 [vars]
-SUPABASE_URL = "https://YOUR_PROJECT_REF.supabase.co"
-MUSICBRAINZ_CONTACT = "YOUR_CONTACT_EMAIL"
+SUPABASE_URL = "https://zqndjhzopvylfzqgsssx.supabase.co"
+MUSICBRAINZ_CONTACT = "https://github.com/hjw0602-cloud"
