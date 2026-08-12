@@ -15,6 +15,18 @@ type MusicBrainzReleaseGroup = {
   'artist-credit'?: { name: string; artist?: { id: string; name: string } }[]
 }
 
+type AppleAlbum = {
+  collectionId: number
+  collectionName: string
+  artistName: string
+  artistId: number
+  collectionType?: string
+  primaryGenreName?: string
+  releaseDate?: string
+  artworkUrl100?: string
+  collectionViewUrl?: string
+}
+
 const curatedCatalog = [
   ['Nas', 'Illmatic'], ['Kendrick Lamar', 'To Pimp a Butterfly'], ['Kanye West', 'My Beautiful Dark Twisted Fantasy'],
   ['Jay-Z', 'The Blueprint'], ['The Notorious B.I.G.', 'Ready to Die'], ['A Tribe Called Quest', 'The Low End Theory'],
@@ -60,6 +72,8 @@ const publicRelease = (item: MusicBrainzReleaseGroup) => {
   const credit = item['artist-credit']?.[0]
   return {
     id: `mb:${item.id}`,
+    source: 'musicbrainz',
+    externalId: item.id,
     musicbrainzId: item.id,
     title: item.title,
     artist: credit?.artist?.name || credit?.name || 'Unknown Artist',
@@ -74,6 +88,23 @@ const publicRelease = (item: MusicBrainzReleaseGroup) => {
     links: {},
   }
 }
+
+const publicAppleRelease = (item: AppleAlbum) => ({
+  id: `apple:${item.collectionId}`,
+  source: 'apple',
+  externalId: String(item.collectionId),
+  title: item.collectionName,
+  artist: item.artistName,
+  type: 'ALBUM',
+  date: item.releaseDate?.slice(0, 10) || '',
+  genres: item.primaryGenreName ? [item.primaryGenreName] : [],
+  cover: (item.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
+  score: 0,
+  ratings: 0,
+  description: '',
+  tracks: [],
+  links: { apple: item.collectionViewUrl },
+})
 
 async function getReleaseGroup(env: Env, musicbrainzId: string) {
   const endpoint = new URL(`https://musicbrainz.org/ws/2/release-group/${musicbrainzId}`)
@@ -106,6 +137,37 @@ async function importSelectedRelease(env: Env, musicbrainzId: string) {
   })
   const release = publicRelease(item)
   return { ...release, id: slugify(`${credit.name}-${item.title}`, item.id) }
+}
+
+async function importAppleRelease(env: Env, appleId: string) {
+  const lookup = new URL('https://itunes.apple.com/lookup')
+  lookup.searchParams.set('id', appleId)
+  lookup.searchParams.set('country', 'KR')
+  lookup.searchParams.set('entity', 'album')
+  const response = await fetch(lookup, { headers: { 'User-Agent': `CRATEDIGGERS/0.3 (${env.MUSICBRAINZ_CONTACT})`, Accept: 'application/json', 'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8' } })
+  if (!response.ok) throw new Error(`Apple ${response.status}`)
+  const payload = await response.json() as { results?: AppleAlbum[] }
+  const item = payload.results?.find(result => String(result.collectionId) === appleId)
+  if (!item) throw new Error('Apple album not found')
+  const artistSlug = slugify(item.artistName, `apple-${item.artistId}`)
+  const artistResponse = await supabase(env, 'artists?on_conflict=slug', {
+    method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify({ name: item.artistName, slug: artistSlug }),
+  })
+  const [artist] = await artistResponse.json() as { id: string }[]
+  const slug = slugify(`${item.artistName}-${item.collectionName}`, `apple-${item.collectionId}`)
+  await supabase(env, 'releases?on_conflict=slug', {
+    method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({
+      artist_id: artist.id, title: item.collectionName, slug, release_type: 'ALBUM',
+      release_date: item.releaseDate?.slice(0, 10) || null,
+      genres: item.primaryGenreName ? [item.primaryGenreName] : [],
+      cover_url: (item.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
+      apple_music_url: item.collectionViewUrl || null, status: 'draft', source: 'apple-selected', source_payload: item,
+      imported_at: new Date().toISOString(), last_synced_at: new Date().toISOString(),
+    }),
+  })
+  return { ...publicAppleRelease(item), id: slug }
 }
 
 async function supabase(env: Env, path: string, init: RequestInit = {}) {
@@ -226,20 +288,34 @@ export default {
     if (request.method === 'GET' && url.pathname === '/search') {
       const query = (url.searchParams.get('q') || '').trim().slice(0, 80)
       if (query.length < 2) return Response.json([], { headers: corsHeaders })
+      const appleEndpoint = new URL('https://itunes.apple.com/search')
+      appleEndpoint.searchParams.set('term', query)
+      appleEndpoint.searchParams.set('country', 'KR')
+      appleEndpoint.searchParams.set('media', 'music')
+      appleEndpoint.searchParams.set('entity', 'album')
+      appleEndpoint.searchParams.set('limit', '12')
+      const appleResponse = await fetch(appleEndpoint, { headers: { 'User-Agent': `CRATEDIGGERS/0.3 (${env.MUSICBRAINZ_CONTACT})`, Accept: 'application/json', 'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8' } })
+      const applePayload = appleResponse.ok ? await appleResponse.json() as { results?: AppleAlbum[] } : { results: [] }
       const endpoint = new URL('https://musicbrainz.org/ws/2/release-group')
       endpoint.searchParams.set('query', `releasegroup:${JSON.stringify(query)} AND (primarytype:album OR primarytype:ep OR primarytype:single)`)
       endpoint.searchParams.set('fmt', 'json')
       endpoint.searchParams.set('limit', '12')
       const response = await fetch(endpoint, { headers: musicBrainzHeaders(env) })
-      if (!response.ok) return Response.json({ error: 'Music search is temporarily unavailable' }, { status: 503, headers: corsHeaders })
-      const payload = await response.json() as { 'release-groups'?: MusicBrainzReleaseGroup[] }
-      return Response.json((payload['release-groups'] || []).map(publicRelease), { headers: { ...corsHeaders, 'Cache-Control': 'public, max-age=300' } })
+      const payload = response.ok ? await response.json() as { 'release-groups'?: MusicBrainzReleaseGroup[] } : { 'release-groups': [] }
+      const appleResults = (applePayload.results || []).map(publicAppleRelease)
+      const musicBrainzResults = (payload['release-groups'] || []).map(publicRelease).filter(item => !appleResults.some(apple => apple.title.toLowerCase() === item.title.toLowerCase() && apple.artist.toLowerCase() === item.artist.toLowerCase()))
+      if (!appleResults.length && !musicBrainzResults.length && !appleResponse.ok && !response.ok) return Response.json({ error: 'Music search is temporarily unavailable' }, { status: 503, headers: corsHeaders })
+      return Response.json([...appleResults, ...musicBrainzResults].slice(0, 18), { headers: { ...corsHeaders, 'Cache-Control': 'public, max-age=300' } })
     }
     if (request.method === 'POST' && url.pathname === '/catalog/import') {
-      const body = await request.json().catch(() => null) as { musicbrainzId?: string } | null
-      if (!body?.musicbrainzId || !/^[0-9a-f-]{36}$/i.test(body.musicbrainzId)) return Response.json({ error: 'Invalid MusicBrainz ID' }, { status: 400, headers: corsHeaders })
+      const body = await request.json().catch(() => null) as { source?: string, externalId?: string, musicbrainzId?: string } | null
+      const source = body?.source || (body?.musicbrainzId ? 'musicbrainz' : '')
+      const externalId = body?.externalId || body?.musicbrainzId || ''
+      if (source === 'musicbrainz' && !/^[0-9a-f-]{36}$/i.test(externalId)) return Response.json({ error: 'Invalid MusicBrainz ID' }, { status: 400, headers: corsHeaders })
+      if (source === 'apple' && !/^\d+$/.test(externalId)) return Response.json({ error: 'Invalid Apple Music ID' }, { status: 400, headers: corsHeaders })
+      if (source !== 'apple' && source !== 'musicbrainz') return Response.json({ error: 'Unsupported catalog source' }, { status: 400, headers: corsHeaders })
       try {
-        return Response.json(await importSelectedRelease(env, body.musicbrainzId), { headers: corsHeaders })
+        return Response.json(source === 'apple' ? await importAppleRelease(env, externalId) : await importSelectedRelease(env, externalId), { headers: corsHeaders })
       } catch {
         return Response.json({ error: 'Album could not be imported' }, { status: 502, headers: corsHeaders })
       }
