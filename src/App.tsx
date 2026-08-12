@@ -37,8 +37,11 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/create" element={<CreatePage />} />
+        <Route path="/review" element={<ReviewPage {...ctx} />} />
         <Route path="/my-crate" element={<MyArchivePage />} />
-        <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/board" element={<ExplorePage />} />
+        <Route path="/board/:id" element={<ExploreDetailPage />} />
+        <Route path="/explore" element={<Navigate to="/board" replace />} />
         <Route path="/explore/:id" element={<ExploreDetailPage />} />
         <Route path="/release/:id" element={<ReleasePage {...ctx} />} />
         <Route path="/search" element={<SearchPage reviews={backend.reviews} />} />
@@ -63,7 +66,7 @@ function Header({ dark, setDark, loggedIn, setAuthOpen, mobileOpen, setMobileOpe
   return <header className="header">
     <Link className="brand" to="/"><Disc3 size={21} /><span>{BRAND}</span></Link>
     <nav className={mobileOpen ? 'desktop-nav open' : 'desktop-nav'}>
-      <NavLink to="/create">CREATE</NavLink><NavLink to="/my-crate">MY CRATE</NavLink><NavLink to="/explore">EXPLORE</NavLink>
+      <NavLink to="/create">CREATE</NavLink><NavLink to="/review">REVIEW</NavLink><NavLink to="/board">BOARD</NavLink><NavLink to="/my-crate">MY CRATE</NavLink>
     </nav>
     <div className="header-actions">
       <Link className="icon-btn" to="/search" title="검색"><Search size={19} /></Link>
@@ -119,6 +122,18 @@ function SectionHead({ kicker, title, link, light }: { kicker: string; title: st
 
 function ReleaseCard({ release }: { release: Release }) {
   return <Link to={`/release/${release.id}`} className="release-card"><div className="cover-wrap"><img src={release.cover} alt={`${release.artist} ${release.title}`} /><span className="type-tag">{release.type}</span></div><h3>{release.title}</h3><p>{release.artist}</p><div className="genres">{release.genres.slice(0, 2).map(g => <span key={g}>{g}</span>)}</div><div className="card-score"><Star size={15} fill="currentColor" /><b>{release.score.toFixed(1)}</b><small>{release.ratings}</small></div></Link>
+}
+
+function ReviewPage(ctx: AppContext) {
+  return <div className="review-page section-wrap"><header className="review-page-head"><div><span>NEW RELEASES</span><h1>REVIEW</h1><p>새로 나온 앨범을 듣고 별점과 한줄평을 남겨보세요.</p></div><div><b>{releases.length}</b><span>이번 주 신보</span></div></header><div className="review-release-list">{releases.map(release => <QuickReviewCard key={release.id} release={release} review={ctx.reviews.find(item => item.releaseId === release.id && item.userId === 'me')} onSave={ctx.addReview} />)}</div></div>
+}
+
+function QuickReviewCard({ release, review, onSave }: { release: Release; review?: Review; onSave: AppContext['addReview'] }) {
+  const [score, setScore] = useState(review?.score ?? 8)
+  const [text, setText] = useState(review?.text ?? '')
+  const [saved, setSaved] = useState(false)
+  const submit = async (event: FormEvent) => { event.preventDefault(); await onSave(release.id, score, text.trim()); setSaved(true); window.setTimeout(() => setSaved(false), 1800) }
+  return <article className="quick-review-card"><Link className="quick-review-cover" to={`/release/${release.id}`}><img src={release.cover} alt={`${release.artist} ${release.title}`} /><span>{release.type}</span></Link><div className="quick-review-info"><small>{release.date} · {release.genres.slice(0,2).join(' / ')}</small><Link to={`/release/${release.id}`}><h2>{release.title}</h2></Link><p>{release.artist}</p><div><Star fill="currentColor" /><b>{release.score.toFixed(1)}</b><span>{release.ratings} RATINGS</span></div></div><form onSubmit={submit}><label><span>MY RATING</span><div className="quick-score"><Star fill="currentColor" /><input type="number" min="0" max="10" step="0.1" value={score} onChange={event => setScore(Math.min(10, Math.max(0, Number(event.target.value))))} /><small>/ 10</small></div></label><label><span>한줄평</span><textarea maxLength={300} value={text} onChange={event => setText(event.target.value)} placeholder="이 앨범을 어떻게 들었나요?" /></label><footer><small>{text.length} / 300</small><button className="primary-btn" type="submit"><PenLine /> {saved ? '저장됨' : review ? '수정하기' : '평가 남기기'}</button></footer></form></article>
 }
 
 function FeaturedReview({ review, rank }: { review: Review; rank: number }) {
@@ -325,6 +340,6 @@ function AuthModal({ onClose }: { onClose: () => void }) {
   return <div className="modal-backdrop" onMouseDown={onClose}><div className="auth-modal" onMouseDown={e => e.stopPropagation()}><button className="close" onClick={onClose}><X /></button><Disc3 size={32} /><small>{BRAND}</small><h2>{signup ? '새 계정 만들기' : '다시 오신 것을 환영해요'}</h2><p>좋은 음악을 발견하고 당신의 한줄을 남겨보세요.</p><button className="kakao" onClick={kakao}>카카오로 계속하기</button><div className="or"><span>또는</span></div>{signup && <input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="닉네임" />}<input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" /><input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호" />{error && <p className="form-error">{error}</p>}{notice && <p className="form-notice">{notice}</p>}<button className="primary-btn full" disabled={busy || !email || !password || (signup && !nickname)} onClick={submit}>{busy ? '처리 중...' : signup ? '가입하기' : '이메일로 로그인'}</button><button className="text-btn" onClick={() => setSignup(!signup)}>{signup ? '이미 계정이 있나요? 로그인' : '처음이신가요? 회원가입'}</button></div></div>
 }
 
-function MobileNav() { return <nav className="mobile-nav"><NavLink to="/create"><Plus /><span>CREATE</span></NavLink><NavLink to="/my-crate"><Disc3 /><span>MY CRATE</span></NavLink><NavLink to="/explore"><Search /><span>EXPLORE</span></NavLink></nav> }
+function MobileNav() { return <nav className="mobile-nav"><NavLink to="/create"><Plus /><span>CREATE</span></NavLink><NavLink to="/review"><Star /><span>REVIEW</span></NavLink><NavLink to="/board"><Search /><span>BOARD</span></NavLink><NavLink to="/my-crate"><Disc3 /><span>MY CRATE</span></NavLink></nav> }
 
 export default App
