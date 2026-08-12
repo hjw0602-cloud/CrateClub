@@ -11,6 +11,7 @@
 
 /* Single-page CREATE workspace */
 .create-control-block{padding:0 0 30px;margin-bottom:30px;border-bottom:1px solid var(--line)}
+.create-page>.create-workspace{padding-top:0}
 .create-control-block:last-child{margin-bottom:0;border-bottom:0}
 .create-control-block .order-list{margin-top:18px}
 .template-control{margin-top:22px}
