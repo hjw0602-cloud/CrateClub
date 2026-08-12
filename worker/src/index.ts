@@ -54,6 +54,60 @@ const releaseType = (item: MusicBrainzReleaseGroup) => {
   return primary === 'EP' || primary === 'SINGLE' ? primary : 'ALBUM'
 }
 
+const musicBrainzHeaders = (env: Env) => ({ 'User-Agent': `CRATEDIGGERS/0.3 (${env.MUSICBRAINZ_CONTACT})` })
+
+const publicRelease = (item: MusicBrainzReleaseGroup) => {
+  const credit = item['artist-credit']?.[0]
+  return {
+    id: `mb:${item.id}`,
+    musicbrainzId: item.id,
+    title: item.title,
+    artist: credit?.artist?.name || credit?.name || 'Unknown Artist',
+    type: releaseType(item),
+    date: item['first-release-date'] || '',
+    genres: (item.tags || []).sort((a, b) => b.count - a.count).slice(0, 5).map(tag => tag.name),
+    cover: `https://coverartarchive.org/release-group/${item.id}/front-500`,
+    score: 0,
+    ratings: 0,
+    description: '',
+    tracks: [],
+    links: {},
+  }
+}
+
+async function getReleaseGroup(env: Env, musicbrainzId: string) {
+  const endpoint = new URL(`https://musicbrainz.org/ws/2/release-group/${musicbrainzId}`)
+  endpoint.searchParams.set('fmt', 'json')
+  endpoint.searchParams.set('inc', 'artist-credits+tags')
+  const response = await fetch(endpoint, { headers: musicBrainzHeaders(env) })
+  if (!response.ok) throw new Error(`MusicBrainz ${response.status}`)
+  return await response.json() as MusicBrainzReleaseGroup
+}
+
+async function importSelectedRelease(env: Env, musicbrainzId: string) {
+  const item = await getReleaseGroup(env, musicbrainzId)
+  const credit = item['artist-credit']?.[0]
+  if (!credit?.artist?.id) throw new Error('Release group has no artist credit')
+  const artistResponse = await supabase(env, 'artists?on_conflict=musicbrainz_id', {
+    method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify({ name: credit.artist.name || credit.name, slug: slugify(credit.artist.name || credit.name, credit.artist.id), musicbrainz_id: credit.artist.id }),
+  })
+  const [artist] = await artistResponse.json() as { id: string }[]
+  await supabase(env, 'releases?on_conflict=musicbrainz_id', {
+    method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({
+      artist_id: artist.id, title: item.title, slug: slugify(`${credit.name}-${item.title}`, item.id),
+      release_type: releaseType(item), release_date: item['first-release-date'] || null,
+      genres: (item.tags || []).sort((a, b) => b.count - a.count).slice(0, 5).map(tag => tag.name),
+      cover_url: `https://coverartarchive.org/release-group/${item.id}/front-500`, musicbrainz_id: item.id,
+      status: 'draft', source: 'musicbrainz-selected', source_payload: item,
+      imported_at: new Date().toISOString(), last_synced_at: new Date().toISOString(),
+    }),
+  })
+  const release = publicRelease(item)
+  return { ...release, id: slugify(`${credit.name}-${item.title}`, item.id) }
+}
+
 async function supabase(env: Env, path: string, init: RequestInit = {}) {
   const response = await fetch(`${env.SUPABASE_URL}/rest/v1/${path}`, { ...init, headers: { ...headers(env), ...init.headers } })
   if (!response.ok) throw new Error(`Supabase ${response.status}: ${await response.text()}`)
@@ -166,8 +220,29 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders })
     const url = new URL(request.url)
     if (request.method === 'GET' && url.pathname === '/catalog') {
-      const response = await supabase(env, 'releases?select=slug,title,release_type,release_date,genres,description,cover_url,spotify_url,apple_music_url,youtube_music_url,artist:artists!inner(name)&status=eq.published&order=release_date.desc&limit=500')
+      const response = await supabase(env, 'releases?select=slug,title,release_type,release_date,genres,description,cover_url,spotify_url,apple_music_url,youtube_music_url,artist:artists!inner(name)&or=(status.eq.published,source.eq.musicbrainz-selected)&order=release_date.desc&limit=500')
       return new Response(await response.text(), { headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' } })
+    }
+    if (request.method === 'GET' && url.pathname === '/search') {
+      const query = (url.searchParams.get('q') || '').trim().slice(0, 80)
+      if (query.length < 2) return Response.json([], { headers: corsHeaders })
+      const endpoint = new URL('https://musicbrainz.org/ws/2/release-group')
+      endpoint.searchParams.set('query', `releasegroup:${JSON.stringify(query)} AND (primarytype:album OR primarytype:ep OR primarytype:single)`)
+      endpoint.searchParams.set('fmt', 'json')
+      endpoint.searchParams.set('limit', '12')
+      const response = await fetch(endpoint, { headers: musicBrainzHeaders(env) })
+      if (!response.ok) return Response.json({ error: 'Music search is temporarily unavailable' }, { status: 503, headers: corsHeaders })
+      const payload = await response.json() as { 'release-groups'?: MusicBrainzReleaseGroup[] }
+      return Response.json((payload['release-groups'] || []).map(publicRelease), { headers: { ...corsHeaders, 'Cache-Control': 'public, max-age=300' } })
+    }
+    if (request.method === 'POST' && url.pathname === '/catalog/import') {
+      const body = await request.json().catch(() => null) as { musicbrainzId?: string } | null
+      if (!body?.musicbrainzId || !/^[0-9a-f-]{36}$/i.test(body.musicbrainzId)) return Response.json({ error: 'Invalid MusicBrainz ID' }, { status: 400, headers: corsHeaders })
+      try {
+        return Response.json(await importSelectedRelease(env, body.musicbrainzId), { headers: corsHeaders })
+      } catch {
+        return Response.json({ error: 'Album could not be imported' }, { status: 502, headers: corsHeaders })
+      }
     }
     if (request.method !== 'POST') return new Response('Not found', { status: 404 })
     if (env.SYNC_TOKEN && request.headers.get('Authorization') !== `Bearer ${env.SYNC_TOKEN}`) return new Response('Unauthorized', { status: 401 })

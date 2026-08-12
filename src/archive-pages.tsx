@@ -1,11 +1,14 @@
 ﻿import { useMemo, useState } from 'react'
+import { useEffect } from 'react'
 import { ArrowRight, Check, ChevronLeft, ChevronRight, Copy, Disc3, Eye, Grid3X3, Heart, ImageDown, Layers3, Lock, MessageCircle, PenLine, Plus, Save, Search, Share2, Sparkles, Star, Trash2 } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
-import { initialReviews, releases, users } from './data'
+import { initialReviews, releases, users, type Release } from './data'
 import { templateLabels, type Crateprint, type CrateprintTemplate, type CrateprintTheme } from './crateprint'
 import './archive.css'
 
 const defaultAlbumIds = ['afterimage', 'blue-hour', 'no-skip', 'petals', 'heat-check', 'soft-focus', 'blue-hour', 'afterimage', 'petals']
+const catalogApi = 'https://cratediggers-release-sync.hjw0602.workers.dev'
+type SearchRelease = Release & { musicbrainzId?: string }
 
 const officialBoards: Crateprint[] = [
   makeBoard('official-01', 'HEAVY ROTATION', '요즘 가장 자주 꺼내 듣는 아홉 장', 'display-shelf', 'black-metal', true),
@@ -41,8 +44,30 @@ export function CreatePage({ catalog: releases }: { catalog: typeof import('./da
   const [albumIds, setAlbumIds] = useState(defaultAlbumIds)
   const [query, setQuery] = useState('')
   const [activeSlot, setActiveSlot] = useState(0)
+  const [addedReleases, setAddedReleases] = useState<Release[]>([])
+  const [searchResults, setSearchResults] = useState<SearchRelease[]>([])
+  const [searching, setSearching] = useState(false)
+  const [importingId, setImportingId] = useState('')
+  const [searchError, setSearchError] = useState('')
+  const availableReleases = useMemo(() => [...releases, ...addedReleases.filter(item => !releases.some(release => release.id === item.id))], [releases, addedReleases])
   const normalizedQuery = query.trim().toLowerCase()
-  const visibleReleases = releases.filter(item => !normalizedQuery || `${item.title} ${item.artist} ${item.genres.join(' ')}`.toLowerCase().includes(normalizedQuery)).slice(0, 12)
+  const localMatches = availableReleases.filter(item => !normalizedQuery || `${item.title} ${item.artist} ${item.genres.join(' ')}`.toLowerCase().includes(normalizedQuery))
+  const visibleReleases: SearchRelease[] = normalizedQuery.length < 2 ? localMatches.slice(0, 12) : [...localMatches, ...searchResults.filter(item => !localMatches.some(local => local.title.toLowerCase() === item.title.toLowerCase() && local.artist.toLowerCase() === item.artist.toLowerCase()))].slice(0, 12)
+  useEffect(() => {
+    if (normalizedQuery.length < 2) { setSearchResults([]); setSearching(false); setSearchError(''); return }
+    const controller = new AbortController()
+    const timer = window.setTimeout(async () => {
+      setSearching(true); setSearchError('')
+      try {
+        const response = await fetch(`${catalogApi}/search?q=${encodeURIComponent(query.trim())}`, { signal: controller.signal })
+        if (!response.ok) throw new Error('search failed')
+        setSearchResults(await response.json())
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') setSearchError('외부 앨범 검색을 잠시 사용할 수 없습니다.')
+      } finally { if (!controller.signal.aborted) setSearching(false) }
+    }, 500)
+    return () => { window.clearTimeout(timer); controller.abort() }
+  }, [normalizedQuery, query])
   const createTemplates = [
     ['classic-grid', Grid3X3, '익숙한 3 × 3 포스터'],
     ['display-shelf', Disc3, '대표 LP를 진열하는 선반형'],
@@ -51,6 +76,20 @@ export function CreatePage({ catalog: releases }: { catalog: typeof import('./da
   const board = useMemo(() => ({ ...makeBoard('draft-local', title, description, template, 'black-metal'), selectedAlbums: albumIds.map((releaseId, order) => ({ releaseId, order })), heroAlbumId: albumIds[0] }), [title, description, template, albumIds])
   const swap = (index: number, delta: number) => { const target = index + delta; if (target < 0 || target >= albumIds.length) return; const next = [...albumIds]; [next[index], next[target]] = [next[target], next[index]]; setAlbumIds(next) }
   const replace = (index: number, releaseId: string) => { const next = [...albumIds]; next[index] = releaseId; setAlbumIds(next) }
+  const selectRelease = async (release: SearchRelease) => {
+    let selected: Release = release
+    if (release.musicbrainzId) {
+      setImportingId(release.id)
+      try {
+        const response = await fetch(`${catalogApi}/catalog/import`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ musicbrainzId: release.musicbrainzId }) })
+        if (!response.ok) throw new Error('import failed')
+        selected = await response.json()
+        setAddedReleases(items => [...items.filter(item => item.id !== selected.id), selected])
+      } catch { setSearchError('앨범을 저장하지 못했습니다. 잠시 후 다시 시도해주세요.'); return }
+      finally { setImportingId('') }
+    }
+    replace(activeSlot, selected.id); setQuery(''); setSearchResults([]); setActiveSlot(Math.min(activeSlot + 1, 8))
+  }
   const saveLocal = () => localStorage.setItem('cd-crateprint-draft', JSON.stringify(board))
   const shareBoard = async () => {
     saveLocal()
@@ -63,9 +102,9 @@ export function CreatePage({ catalog: releases }: { catalog: typeof import('./da
   return <div className="create-page section-wrap">
     <div className="create-workspace"><section className="create-controls">
       <div className="create-control-block"><StepTitle index="01" title="Crate" copy="CRATEPRINT에 표시할 제목과 한 줄 설명을 입력하세요." /><label className="text-field">제목<input value={title} onChange={event => setTitle(event.target.value)} /></label><label className="text-field">한 줄 설명<textarea value={description} onChange={event => setDescription(event.target.value)} /></label><div className="template-control"><span>템플릿</span><div className="preview-template-switcher">{createTemplates.map(([value,Icon,copy]) => <button className={template === value ? 'active' : ''} onClick={() => setTemplate(value)} key={value}><Icon /><span><b>{templateLabels[value]}</b><small>{copy}</small></span>{template === value && <Check />}</button>)}</div></div></div>
-      <div className="create-control-block"><StepTitle index="02" title="앨범 선택" copy="바꿀 칸을 누른 뒤 앨범을 검색하세요. 첫 번째 앨범이 대표 앨범입니다." /><div className="active-slot-label"><span>{activeSlot === 0 ? 'HERO' : String(activeSlot + 1).padStart(2,'0')} 교체 중</span><small>{releases.length}개의 앨범에서 검색</small></div><label className="album-search"><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="앨범 또는 아티스트 검색" /></label><div className="album-results">{visibleReleases.length ? visibleReleases.map(release => <article key={release.id}><img src={release.cover} alt="" /><div><b>{release.title}</b><small>{release.artist} · {release.date?.slice(0,4)}</small></div><button onClick={() => { replace(activeSlot, release.id); setQuery(''); setActiveSlot(Math.min(activeSlot + 1, 8)) }}><Plus /> 선택</button></article>) : <p className="album-results-empty">검색 결과가 없습니다.</p>}</div><div className="order-list">{albumIds.map((id,index) => { const album = releases.find(item => item.id === id) || releases[0]; return <article className={activeSlot === index ? 'active' : ''} key={`${id}-${index}`} onClick={() => setActiveSlot(index)}><b>{index === 0 ? 'HERO' : String(index + 1).padStart(2,'0')}</b><img src={album.cover} alt="" /><p>{album.title}<small>{album.artist}</small></p><button onClick={event => { event.stopPropagation(); swap(index,-1); setActiveSlot(Math.max(0,index - 1)) }} aria-label="앞으로"><ChevronLeft /></button><button onClick={event => { event.stopPropagation(); swap(index,1); setActiveSlot(Math.min(8,index + 1)) }} aria-label="뒤로"><ChevronRight /></button></article> })}</div></div>
+      <div className="create-control-block"><StepTitle index="02" title="앨범 선택" copy="바꿀 칸을 누른 뒤 앨범을 검색하세요. 첫 번째 앨범이 대표 앨범입니다." /><div className="active-slot-label"><span>{activeSlot === 0 ? 'HERO' : String(activeSlot + 1).padStart(2,'0')} 교체 중</span><small>{availableReleases.length}개 저장됨 · MusicBrainz 전체 검색</small></div><label className="album-search"><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="앨범 또는 아티스트 검색" /></label>{searching && <p className="album-search-status">MusicBrainz에서 검색 중...</p>}{searchError && <p className="album-search-error">{searchError}</p>}<div className="album-results">{visibleReleases.length ? visibleReleases.map(release => <article key={release.id}><img src={release.cover} alt="" /><div><b>{release.title}</b><small>{release.artist} · {release.date?.slice(0,4)}{release.musicbrainzId && ' · MusicBrainz'}</small></div><button disabled={importingId === release.id} onClick={() => selectRelease(release)}><Plus /> {importingId === release.id ? '저장 중' : '선택'}</button></article>) : !searching && <p className="album-results-empty">검색 결과가 없습니다.</p>}</div><div className="order-list">{albumIds.map((id,index) => { const album = availableReleases.find(item => item.id === id) || availableReleases[0]; return <article className={activeSlot === index ? 'active' : ''} key={`${id}-${index}`} onClick={() => setActiveSlot(index)}><b>{index === 0 ? 'HERO' : String(index + 1).padStart(2,'0')}</b><img src={album.cover} alt="" /><p>{album.title}<small>{album.artist}</small></p><button onClick={event => { event.stopPropagation(); swap(index,-1); setActiveSlot(Math.max(0,index - 1)) }} aria-label="앞으로"><ChevronLeft /></button><button onClick={event => { event.stopPropagation(); swap(index,1); setActiveSlot(Math.min(8,index + 1)) }} aria-label="뒤로"><ChevronRight /></button></article> })}</div></div>
       <div className="create-control-block create-output"><StepTitle index="03" title="출력" copy="완성한 CRATEPRINT를 저장하거나 바로 공유하세요." /><div className="output-actions"><button className="primary-btn" onClick={downloadImage}><ImageDown /> 이미지 다운로드</button><button className="outline-btn" onClick={shareBoard}><Share2 /> SNS 공유</button><button className="outline-btn" onClick={saveLocal}><Save /> 내 크레이트 저장</button></div><label className="public-check"><input type="checkbox" /> BOARD에 공개 <small>기본값은 비공개입니다.</small></label></div>
-    </section><aside className="create-preview"><div className="preview-head"><div><span>LIVE PREVIEW</span><b>{templateLabels[template]}</b></div></div><CrateprintPreview board={board} catalog={releases} onTitleChange={setTitle} onDescriptionChange={setDescription} /><p>제목과 설명은 포스터 위에서 직접 클릭해 수정할 수 있습니다.</p></aside></div>
+    </section><aside className="create-preview"><div className="preview-head"><div><span>LIVE PREVIEW</span><b>{templateLabels[template]}</b></div></div><CrateprintPreview board={board} catalog={availableReleases} onTitleChange={setTitle} onDescriptionChange={setDescription} /><p>제목과 설명은 포스터 위에서 직접 클릭해 수정할 수 있습니다.</p></aside></div>
   </div>
 }
 function StepTitle({ index, title, copy }: { index: string; title: string; copy: string }) { return <header className="step-title"><span>{index}</span><h2>{title}</h2><p>{copy}</p></header> }
