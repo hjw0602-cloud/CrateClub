@@ -54,6 +54,14 @@ TODAY, 라이브 라운지, 실시간 채팅, COMMUNITY, FOLLOWING/FOR YOU와 �
 
 ## 다음 작업
 
+### 실제 앨범 데이터 파이프라인
+
+- REVIEW와 CREATE는 Supabase의 `published` 앨범을 우선 읽고, 연결되지 않았거나 데이터가 비어 있으면 샘플 카탈로그를 사용한다.
+- `supabase/migrations/20260812_release_ingestion.sql`은 외부 데이터 출처와 동기화 이력 테이블을 추가한다.
+- `worker/`의 Cloudflare Worker는 매일 MusicBrainz 신보를 조회해 Supabase에 `draft`로 중복 없이 저장한다.
+- 운영 전 `worker/wrangler.toml`의 `SUPABASE_URL`, `MUSICBRAINZ_CONTACT`를 실제 값으로 교체하고 `SUPABASE_SERVICE_ROLE_KEY`, `SYNC_TOKEN`을 Wrangler Secret으로 등록해야 한다.
+- GitHub 저장소 Secret에 `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`를 등록해야 GitHub Pages 빌드가 실제 Supabase를 사용한다.
+
 1. RANKED CRATE와 CLASSIC GRID의 출력 비율별 완성도 개선
 2. 이미지 내보내기
 3. Supabase 인증, CRATEPRINT 저장·공개와 LISTENING LOG 연결

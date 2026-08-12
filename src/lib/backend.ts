@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { initialPosts, initialReviews, users, type Post, type Review, type User } from '../data'
+import { initialPosts, initialReviews, releases as seedReleases, users, type Post, type Release, type Review, type User } from '../data'
 import { isDemoMode, supabase } from './supabase'
 
 const ago = (value: string) => {
@@ -26,16 +26,29 @@ export function useBackend() {
   const [posts, setPosts] = useState<Post[]>(isDemoMode ? initialPosts : [])
   const [follows, setFollows] = useState<string[]>(isDemoMode ? ['u1'] : [])
   const [liked, setLiked] = useState<string[]>([])
+  const [catalog, setCatalog] = useState<Release[]>(seedReleases)
   const [loading, setLoading] = useState(!isDemoMode)
 
   const load = useCallback(async (activeSession?: Session | null) => {
     if (!supabase) return
     setLoading(true)
     const current = activeSession === undefined ? (await supabase.auth.getSession()).data.session : activeSession
-    const [{ data: reviewRows }, { data: postRows }] = await Promise.all([
+    const [{ data: reviewRows }, { data: postRows }, { data: releaseRows }] = await Promise.all([
       supabase.from('reviews').select(`id, score, body, created_at, release:releases!inner(slug), profile:profiles!reviews_user_id_fkey(id,nickname,avatar_url,bio,role), review_likes(user_id), review_replies(id,user_id,body,created_at)`).is('deleted_at', null).order('created_at', { ascending: false }),
       supabase.from('posts').select(`id,board,title,body,created_at,profile:profiles!posts_author_id_fkey(nickname),comments(count)`).is('deleted_at', null).order('created_at', { ascending: false }),
+      supabase.from('releases').select(`slug,title,release_type,release_date,genres,description,cover_url,spotify_url,apple_music_url,youtube_music_url,artist:artists!inner(name),tracks(position,title,duration_ms),reviews(score)`).eq('status', 'published').order('release_date', { ascending: false }),
     ])
+    if (releaseRows?.length) setCatalog(releaseRows.map((row: any) => {
+      const scores = (row.reviews || []).map((review: any) => Number(review.score))
+      return {
+        id: row.slug, title: row.title, artist: row.artist?.name || 'Unknown Artist', type: row.release_type,
+        date: row.release_date ? String(row.release_date).replaceAll('-', '.') : '', genres: row.genres || [], cover: row.cover_url || '',
+        score: scores.length ? scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length : 0, ratings: scores.length,
+        description: row.description || '',
+        tracks: (row.tracks || []).sort((a: any, b: any) => a.position - b.position).map((track: any) => track.title),
+        links: { spotify: row.spotify_url || undefined, apple: row.apple_music_url || undefined, youtube: row.youtube_music_url || undefined },
+      } satisfies Release
+    }))
     setReviews((reviewRows || []).map((row: any) => ({
       id: row.id, releaseId: row.release.slug, userId: row.profile.id, user: profileToUser(row.profile),
       score: Number(row.score), text: row.body || '', likes: row.review_likes?.length || 0, createdAt: ago(row.created_at),
@@ -100,5 +113,5 @@ export function useBackend() {
     await load(session)
   }
 
-  return { session, loggedIn: isDemoMode || !!session, reviews, posts, follows, liked, loading, addReview, toggleLike, toggleFollow, addReply, addPost, refresh: load }
+  return { session, loggedIn: isDemoMode || !!session, catalog, reviews, posts, follows, liked, loading, addReview, toggleLike, toggleFollow, addReply, addPost, refresh: load }
 }

@@ -1,0 +1,100 @@
+interface Env {
+  SUPABASE_URL: string
+  SUPABASE_SERVICE_ROLE_KEY: string
+  MUSICBRAINZ_CONTACT: string
+  SYNC_TOKEN?: string
+}
+
+type MusicBrainzReleaseGroup = {
+  id: string
+  title: string
+  'primary-type'?: string
+  'secondary-types'?: string[]
+  'first-release-date'?: string
+  tags?: { name: string; count: number }[]
+  'artist-credit'?: { name: string; artist?: { id: string; name: string } }[]
+}
+
+const headers = (env: Env) => ({
+  apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+  Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+  'Content-Type': 'application/json',
+})
+
+const slugify = (value: string, suffix: string) => {
+  const base = value.normalize('NFKD').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-|-$/g, '').slice(0, 70)
+  return `${base || 'release'}-${suffix.slice(0, 8)}`
+}
+
+const releaseType = (item: MusicBrainzReleaseGroup) => {
+  if (item['secondary-types']?.some(type => type.toLowerCase().includes('mixtape'))) return 'MIXTAPE'
+  const primary = item['primary-type']?.toUpperCase()
+  return primary === 'EP' || primary === 'SINGLE' ? primary : 'ALBUM'
+}
+
+async function supabase(env: Env, path: string, init: RequestInit = {}) {
+  const response = await fetch(`${env.SUPABASE_URL}/rest/v1/${path}`, { ...init, headers: { ...headers(env), ...init.headers } })
+  if (!response.ok) throw new Error(`Supabase ${response.status}: ${await response.text()}`)
+  return response
+}
+
+async function syncDate(env: Env, targetDate: string) {
+  const runResponse = await supabase(env, 'release_sync_runs', {
+    method: 'POST', headers: { Prefer: 'return=representation' },
+    body: JSON.stringify({ source: 'musicbrainz', target_date: targetDate, status: 'running' }),
+  })
+  const [run] = await runResponse.json() as { id: string }[]
+
+  try {
+    const endpoint = new URL('https://musicbrainz.org/ws/2/release-group')
+    endpoint.searchParams.set('query', `firstreleasedate:${targetDate} AND (primarytype:album OR primarytype:ep OR primarytype:single)`)
+    endpoint.searchParams.set('fmt', 'json')
+    endpoint.searchParams.set('limit', '100')
+    const response = await fetch(endpoint, { headers: { 'User-Agent': `CRATEDIGGERS/0.2 (${env.MUSICBRAINZ_CONTACT})` } })
+    if (!response.ok) throw new Error(`MusicBrainz ${response.status}: ${await response.text()}`)
+    const payload = await response.json() as { 'release-groups'?: MusicBrainzReleaseGroup[] }
+    const groups = (payload['release-groups'] || []).filter(item => item['first-release-date'] === targetDate)
+    let imported = 0
+
+    for (const item of groups) {
+      const credit = item['artist-credit']?.[0]
+      if (!credit?.artist?.id) continue
+      const artistResponse = await supabase(env, 'artists?on_conflict=musicbrainz_id', {
+        method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+        body: JSON.stringify({ name: credit.artist.name || credit.name, slug: slugify(credit.artist.name || credit.name, credit.artist.id), musicbrainz_id: credit.artist.id }),
+      })
+      const [artist] = await artistResponse.json() as { id: string }[]
+      await supabase(env, 'releases?on_conflict=musicbrainz_id', {
+        method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({
+          artist_id: artist.id, title: item.title, slug: slugify(`${credit.name}-${item.title}`, item.id),
+          release_type: releaseType(item), release_date: targetDate,
+          genres: (item.tags || []).sort((a, b) => b.count - a.count).slice(0, 5).map(tag => tag.name),
+          cover_url: `https://coverartarchive.org/release-group/${item.id}/front-500`, musicbrainz_id: item.id,
+          status: 'draft', source: 'musicbrainz', source_payload: item, imported_at: new Date().toISOString(), last_synced_at: new Date().toISOString(),
+        }),
+      })
+      imported += 1
+    }
+
+    await supabase(env, `release_sync_runs?id=eq.${run.id}`, { method: 'PATCH', body: JSON.stringify({ status: 'completed', discovered_count: groups.length, imported_count: imported, finished_at: new Date().toISOString() }) })
+    return { targetDate, discovered: groups.length, imported }
+  } catch (error) {
+    await supabase(env, `release_sync_runs?id=eq.${run.id}`, { method: 'PATCH', body: JSON.stringify({ status: 'failed', error_message: String(error), finished_at: new Date().toISOString() }) })
+    throw error
+  }
+}
+
+export default {
+  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext) {
+    const today = new Date().toISOString().slice(0, 10)
+    ctx.waitUntil(syncDate(env, today))
+  },
+  async fetch(request: Request, env: Env) {
+    if (request.method !== 'POST') return new Response('Not found', { status: 404 })
+    if (env.SYNC_TOKEN && request.headers.get('Authorization') !== `Bearer ${env.SYNC_TOKEN}`) return new Response('Unauthorized', { status: 401 })
+    const date = new URL(request.url).searchParams.get('date') || new Date().toISOString().slice(0, 10)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return Response.json({ error: 'Invalid date' }, { status: 400 })
+    return Response.json(await syncDate(env, date))
+  },
+}

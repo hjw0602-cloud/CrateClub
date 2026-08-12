@@ -1,0 +1,10 @@
+name = "cratediggers-release-sync"
+main = "src/index.ts"
+compatibility_date = "2026-08-12"
+
+[triggers]
+crons = ["17 1 * * *"]
+
+[vars]
+SUPABASE_URL = "https://YOUR_PROJECT_REF.supabase.co"
+MUSICBRAINZ_CONTACT = "YOUR_CONTACT_EMAIL"
