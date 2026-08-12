@@ -37,6 +37,12 @@ const headers = (env: Env) => ({
   'Content-Type': 'application/json',
 })
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+}
+
 const slugify = (value: string, suffix: string) => {
   const base = value.normalize('NFKD').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-|-$/g, '').slice(0, 70)
   return `${base || 'release'}-${suffix.slice(0, 8)}`
@@ -157,9 +163,14 @@ export default {
     ctx.waitUntil(syncDate(env, today))
   },
   async fetch(request: Request, env: Env) {
+    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders })
+    const url = new URL(request.url)
+    if (request.method === 'GET' && url.pathname === '/catalog') {
+      const response = await supabase(env, 'releases?select=slug,title,release_type,release_date,genres,description,cover_url,spotify_url,apple_music_url,youtube_music_url,artist:artists!inner(name)&status=eq.published&order=release_date.desc&limit=500')
+      return new Response(await response.text(), { headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' } })
+    }
     if (request.method !== 'POST') return new Response('Not found', { status: 404 })
     if (env.SYNC_TOKEN && request.headers.get('Authorization') !== `Bearer ${env.SYNC_TOKEN}`) return new Response('Unauthorized', { status: 401 })
-    const url = new URL(request.url)
     if (url.searchParams.get('mode') === 'classics') {
       const batch = Number(url.searchParams.get('batch') || '0')
       if (!Number.isInteger(batch) || batch < 0) return Response.json({ error: 'Invalid batch' }, { status: 400 })

@@ -3,6 +3,21 @@ import type { Session } from '@supabase/supabase-js'
 import { initialPosts, initialReviews, releases as seedReleases, users, type Post, type Release, type Review, type User } from '../data'
 import { isDemoMode, supabase } from './supabase'
 
+const CATALOG_API = 'https://cratediggers-release-sync.hjw0602.workers.dev/catalog'
+
+const mapReleaseRows = (rows: any[]): Release[] => rows.map((row: any) => {
+  const scores = (row.reviews || []).map((review: any) => Number(review.score))
+  return {
+    id: row.slug, title: row.title, artist: row.artist?.name || 'Unknown Artist', type: row.release_type,
+    date: row.release_date ? String(row.release_date).replaceAll('-', '.') : '', genres: row.genres || [], cover: row.cover_url || '',
+    score: scores.length ? scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length : 0, ratings: scores.length,
+    description: row.description || '', tracks: (row.tracks || []).sort((a: any, b: any) => a.position - b.position).map((track: any) => track.title),
+    links: { spotify: row.spotify_url || undefined, apple: row.apple_music_url || undefined, youtube: row.youtube_music_url || undefined },
+  } satisfies Release
+})
+
+const mergeCatalog = (remote: Release[]) => [...seedReleases, ...remote.filter(item => !seedReleases.some(seed => seed.id === item.id))]
+
 const ago = (value: string) => {
   const seconds = Math.floor((Date.now() - new Date(value).getTime()) / 1000)
   if (seconds < 60) return '방금'
@@ -29,6 +44,13 @@ export function useBackend() {
   const [catalog, setCatalog] = useState<Release[]>(seedReleases)
   const [loading, setLoading] = useState(!isDemoMode)
 
+  useEffect(() => {
+    fetch(CATALOG_API)
+      .then(response => response.ok ? response.json() : Promise.reject(new Error(`Catalog ${response.status}`)))
+      .then(rows => { if (Array.isArray(rows) && rows.length) setCatalog(mergeCatalog(mapReleaseRows(rows))) })
+      .catch(() => undefined)
+  }, [])
+
   const load = useCallback(async (activeSession?: Session | null) => {
     if (!supabase) return
     setLoading(true)
@@ -38,17 +60,7 @@ export function useBackend() {
       supabase.from('posts').select(`id,board,title,body,created_at,profile:profiles!posts_author_id_fkey(nickname),comments(count)`).is('deleted_at', null).order('created_at', { ascending: false }),
       supabase.from('releases').select(`slug,title,release_type,release_date,genres,description,cover_url,spotify_url,apple_music_url,youtube_music_url,artist:artists!inner(name),tracks(position,title,duration_ms),reviews(score)`).eq('status', 'published').order('release_date', { ascending: false }),
     ])
-    if (releaseRows?.length) setCatalog(releaseRows.map((row: any) => {
-      const scores = (row.reviews || []).map((review: any) => Number(review.score))
-      return {
-        id: row.slug, title: row.title, artist: row.artist?.name || 'Unknown Artist', type: row.release_type,
-        date: row.release_date ? String(row.release_date).replaceAll('-', '.') : '', genres: row.genres || [], cover: row.cover_url || '',
-        score: scores.length ? scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length : 0, ratings: scores.length,
-        description: row.description || '',
-        tracks: (row.tracks || []).sort((a: any, b: any) => a.position - b.position).map((track: any) => track.title),
-        links: { spotify: row.spotify_url || undefined, apple: row.apple_music_url || undefined, youtube: row.youtube_music_url || undefined },
-      } satisfies Release
-    }))
+    if (releaseRows?.length) setCatalog(mergeCatalog(mapReleaseRows(releaseRows)))
     setReviews((reviewRows || []).map((row: any) => ({
       id: row.id, releaseId: row.release.slug, userId: row.profile.id, user: profileToUser(row.profile),
       score: Number(row.score), text: row.body || '', likes: row.review_likes?.length || 0, createdAt: ago(row.created_at),
