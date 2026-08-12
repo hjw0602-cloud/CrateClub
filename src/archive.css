@@ -535,3 +535,9 @@
   background:color-mix(in srgb,var(--print-bg) 72%,transparent);
 }
 
+/* Keep CREATE choices readable as lists across every breakpoint. */
+.create-control-block .template-control .preview-template-switcher,
+.create-control-block .album-slot-picker{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+
