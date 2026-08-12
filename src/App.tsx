@@ -129,12 +129,17 @@ function ReviewPage(ctx: AppContext) {
   const featured = releases[0]
   const activeReleases = [...releases].sort((a, b) => b.ratings - a.ratings).slice(0, 4)
   const latestReviews = ctx.reviews.filter(item => item.text).slice(0, 4)
+  const preferredGenres = ['Alternative R&B', 'Neo Soul', 'R&B', 'Hip-Hop']
+  const recommendedReleases = [...releases].sort((a, b) => {
+    const tasteScore = (release: Release) => release.genres.filter(genre => preferredGenres.includes(genre)).length * 10 + release.score
+    return tasteScore(b) - tasteScore(a)
+  })
   const albumCard = (release: Release) => <Link className="review-album-card" to={`/release/${release.id}`} key={release.id}><div><img src={release.cover} alt={`${release.artist} ${release.title}`} /><span>{release.type}</span><i><Play fill="currentColor" /></i></div><h3>{release.title}</h3><p>{release.artist}</p><footer><span>{release.date}</span>{reviewedIds.has(release.id) && <b><Check size={11} /> 평가 완료</b>}</footer></Link>
   return <div className="review-page section-wrap"><header className="review-page-head"><div><span>NEW MUSIC</span><h1>REVIEW</h1><p>새로 나온 음악을 발견하고, 앨범 페이지에서 별점과 한줄평을 남겨보세요.</p></div></header>
     <section className="review-feature"><img src={featured.cover} alt={`${featured.artist} ${featured.title}`} /><div><span>FEATURED RELEASE · {featured.type}</span><h2>{featured.title}</h2><h3>{featured.artist}</h3><p>{featured.genres.join(' · ')}<br />이번 주 가장 먼저 들어볼 신보입니다.</p><div><strong><Star fill="currentColor" /> {featured.score.toFixed(1)}</strong><small>{featured.ratings}개의 평가</small></div><Link className="primary-btn" to={`/release/${featured.id}#review-compose`}><PenLine /> 평가하러 가기</Link></div></section>
     <section className="review-shelf"><header><div><span>OUT TODAY</span><h2>오늘 나온 앨범</h2></div><small>{releases.slice(0,4).length} RELEASES</small></header><div>{releases.slice(0,4).map(albumCard)}</div></section>
     <section className="review-pulse"><div className="review-ranking"><header><span>MOST RATED</span><h2>지금 평가가 활발한 앨범</h2></header>{activeReleases.map((release,index) => <Link to={`/release/${release.id}`} key={release.id}><b>{String(index + 1).padStart(2,'0')}</b><img src={release.cover} alt="" /><div><strong>{release.title}</strong><span>{release.artist}</span></div><small><Star fill="currentColor" /> {release.score.toFixed(1)} · {release.ratings}</small><ChevronRight /></Link>)}</div><div className="review-latest"><header><span>LISTENER NOTES</span><h2>새로 올라온 한줄평</h2></header>{latestReviews.map(review => { const release = releases.find(item => item.id === review.releaseId) || releases[0]; const user = review.user || users.find(item => item.id === review.userId) || users[0]; return <Link to={`/release/${release.id}`} key={review.id}><div><span className="avatar mini">{user.avatar}</span><p><b>{user.nickname}</b><small>{release.artist} · {release.title}</small></p><strong>{review.score.toFixed(1)}</strong></div><blockquote>{review.text}</blockquote></Link> })}</div></section>
-    <section className="review-shelf"><header><div><span>RECENTLY RELEASED</span><h2>최근 발매</h2></div></header><div>{releases.map(albumCard)}</div></section>
+    <section className="review-shelf recommendation-shelf"><header><div><span>FOR YOUR TASTE</span><h2>취향 기반 추천 앨범</h2><p>Alternative R&amp;B, Neo Soul과 지금까지 남긴 평점을 바탕으로 골랐어요.</p></div><small>PERSONALIZED PICKS</small></header><div>{recommendedReleases.map(albumCard)}</div></section>
   </div>
 }
 
