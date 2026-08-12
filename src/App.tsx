@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import {
-  Bell, ChevronDown, ChevronRight, Disc3, ExternalLink, Headphones, Heart, LogIn, LogOut, Menu, MessageCircle,
+  Bell, Check, ChevronDown, ChevronRight, Disc3, ExternalLink, Headphones, Heart, LogIn, LogOut, Menu, MessageCircle,
   Moon, MoreHorizontal, PenLine, Play, Plus, Search, Send, ShieldAlert, SlidersHorizontal,
   Star, Sun, UserRound, Users, X,
 } from 'lucide-react'
@@ -125,15 +125,9 @@ function ReleaseCard({ release }: { release: Release }) {
 }
 
 function ReviewPage(ctx: AppContext) {
-  return <div className="review-page section-wrap"><header className="review-page-head"><div><span>NEW RELEASES</span><h1>REVIEW</h1><p>새로 나온 앨범을 듣고 별점과 한줄평을 남겨보세요.</p></div><div><b>{releases.length}</b><span>이번 주 신보</span></div></header><div className="review-release-list">{releases.map(release => <QuickReviewCard key={release.id} release={release} review={ctx.reviews.find(item => item.releaseId === release.id && item.userId === 'me')} onSave={ctx.addReview} />)}</div></div>
-}
-
-function QuickReviewCard({ release, review, onSave }: { release: Release; review?: Review; onSave: AppContext['addReview'] }) {
-  const [score, setScore] = useState(review?.score ?? 8)
-  const [text, setText] = useState(review?.text ?? '')
-  const [saved, setSaved] = useState(false)
-  const submit = async (event: FormEvent) => { event.preventDefault(); await onSave(release.id, score, text.trim()); setSaved(true); window.setTimeout(() => setSaved(false), 1800) }
-  return <article className="quick-review-card"><Link className="quick-review-cover" to={`/release/${release.id}`}><img src={release.cover} alt={`${release.artist} ${release.title}`} /><span>{release.type}</span></Link><div className="quick-review-info"><small>{release.date} · {release.genres.slice(0,2).join(' / ')}</small><Link to={`/release/${release.id}`}><h2>{release.title}</h2></Link><p>{release.artist}</p><div><Star fill="currentColor" /><b>{release.score.toFixed(1)}</b><span>{release.ratings} RATINGS</span></div></div><form onSubmit={submit}><label><span>MY RATING</span><div className="quick-score"><Star fill="currentColor" /><input type="number" min="0" max="10" step="0.1" value={score} onChange={event => setScore(Math.min(10, Math.max(0, Number(event.target.value))))} /><small>/ 10</small></div></label><label><span>한줄평</span><textarea maxLength={300} value={text} onChange={event => setText(event.target.value)} placeholder="이 앨범을 어떻게 들었나요?" /></label><footer><small>{text.length} / 300</small><button className="primary-btn" type="submit"><PenLine /> {saved ? '저장됨' : review ? '수정하기' : '평가 남기기'}</button></footer></form></article>
+  const reviewedIds = new Set(ctx.reviews.filter(item => item.userId === 'me').map(item => item.releaseId))
+  const albumCard = (release: Release) => <Link className="review-album-card" to={`/release/${release.id}`} key={release.id}><div><img src={release.cover} alt={`${release.artist} ${release.title}`} /><span>{release.type}</span><i><Play fill="currentColor" /></i></div><h3>{release.title}</h3><p>{release.artist}</p><footer><span>{release.date}</span>{reviewedIds.has(release.id) && <b><Check size={11} /> 평가 완료</b>}</footer></Link>
+  return <div className="review-page section-wrap"><header className="review-page-head"><div><span>NEW MUSIC</span><h1>REVIEW</h1><p>새로 나온 음악을 발견하고, 앨범 페이지에서 별점과 한줄평을 남겨보세요.</p></div></header><section className="review-shelf"><header><div><span>OUT TODAY</span><h2>오늘 나온 앨범</h2></div><small>{releases.slice(0,4).length} RELEASES</small></header><div>{releases.slice(0,4).map(albumCard)}</div></section><section className="review-shelf"><header><div><span>RECENTLY RELEASED</span><h2>최근 발매</h2></div></header><div>{releases.map(albumCard)}</div></section></div>
 }
 
 function FeaturedReview({ review, rank }: { review: Review; rank: number }) {
