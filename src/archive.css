@@ -34,6 +34,7 @@
 .create-page>.create-workspace{padding-top:0}
 .create-control-block:last-child{margin-bottom:0;border-bottom:0}
 .create-control-block .order-list{margin-top:18px}
+.active-slot-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:9px}.active-slot-label span{color:var(--accent);font-weight:800}.active-slot-label small{color:var(--muted)}.order-list article{cursor:pointer;border-left:2px solid transparent}.order-list article.active{border-left-color:var(--accent);background:var(--soft)}
 .template-control{margin-top:22px}
 .template-control>span{display:block;margin-bottom:8px;font-size:9px;font-weight:800}
 .template-control .preview-template-switcher{margin-bottom:0}

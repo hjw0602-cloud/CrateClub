@@ -15,6 +15,22 @@ type MusicBrainzReleaseGroup = {
   'artist-credit'?: { name: string; artist?: { id: string; name: string } }[]
 }
 
+const curatedCatalog = [
+  ['Nas', 'Illmatic'], ['Kendrick Lamar', 'To Pimp a Butterfly'], ['Kanye West', 'My Beautiful Dark Twisted Fantasy'],
+  ['Jay-Z', 'The Blueprint'], ['The Notorious B.I.G.', 'Ready to Die'], ['A Tribe Called Quest', 'The Low End Theory'],
+  ['OutKast', 'Aquemini'], ['Madvillain', 'Madvillainy'], ['Wu-Tang Clan', 'Enter the Wu-Tang (36 Chambers)'],
+  ['Lauryn Hill', 'The Miseducation of Lauryn Hill'], ['Frank Ocean', 'Blonde'], ['Frank Ocean', 'Channel Orange'],
+  ['SZA', 'Ctrl'], ["D'Angelo", 'Voodoo'], ["D'Angelo", 'Brown Sugar'], ['Erykah Badu', 'Baduizm'],
+  ['Erykah Badu', "Mama's Gun"], ['Maxwell', "Maxwell's Urban Hang Suite"], ['Marvin Gaye', "What's Going On"],
+  ['Stevie Wonder', 'Songs in the Key of Life'], ['Stevie Wonder', 'Innervisions'], ['Prince', 'Purple Rain'],
+  ['Michael Jackson', 'Thriller'], ['Michael Jackson', 'Off the Wall'], ['Janet Jackson', 'The Velvet Rope'],
+  ['The Weeknd', 'House of Balloons'], ['Drake', 'Take Care'], ['Tyler, the Creator', 'IGOR'],
+  ['Tyler, the Creator', 'Flower Boy'], ['Kendrick Lamar', 'DAMN.'], ['Kendrick Lamar', 'good kid, m.A.A.d city'],
+  ['J. Cole', '2014 Forest Hills Drive'], ['Mac Miller', 'Swimming'], ['Dr. Dre', 'The Chronic'],
+  ['Snoop Dogg', 'Doggystyle'], ['Kanye West', 'The College Dropout'], ['Kanye West', 'Late Registration'],
+  ['Jay-Z', 'Reasonable Doubt'], ['Mos Def', 'Black on Both Sides'], ['Solange', 'A Seat at the Table'],
+] as const
+
 const headers = (env: Env) => ({
   apikey: env.SUPABASE_SERVICE_ROLE_KEY,
   Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
@@ -85,6 +101,56 @@ async function syncDate(env: Env, targetDate: string) {
   }
 }
 
+async function syncCuratedBatch(env: Env, batch: number) {
+  const size = 5
+  const items = curatedCatalog.slice(batch * size, batch * size + size)
+  let imported = 0
+  const failed: string[] = []
+
+  for (const [artistName, title] of items) {
+    try {
+      const endpoint = new URL('https://musicbrainz.org/ws/2/release-group')
+      endpoint.searchParams.set('query', `releasegroup:"${title}" AND artist:"${artistName}"`)
+      endpoint.searchParams.set('fmt', 'json')
+      endpoint.searchParams.set('limit', '5')
+      let response: Response | undefined
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        response = await fetch(endpoint, { headers: { 'User-Agent': `CRATEDIGGERS/0.2 (${env.MUSICBRAINZ_CONTACT})` } })
+        if (response.ok) break
+        await new Promise(resolve => setTimeout(resolve, 1500))
+      }
+      if (!response?.ok) throw new Error(`MusicBrainz ${response?.status || 'unavailable'}`)
+      const payload = await response.json() as { 'release-groups'?: MusicBrainzReleaseGroup[] }
+      const item = payload['release-groups']?.find(group => group['artist-credit']?.some(credit => credit.artist?.id))
+      const credit = item?.['artist-credit']?.[0]
+      if (!item || !credit?.artist?.id) throw new Error('No matching release group')
+
+      const artistResponse = await supabase(env, 'artists?on_conflict=musicbrainz_id', {
+        method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+        body: JSON.stringify({ name: credit.artist.name || artistName, slug: slugify(credit.artist.name || artistName, credit.artist.id), musicbrainz_id: credit.artist.id }),
+      })
+      const [artist] = await artistResponse.json() as { id: string }[]
+      await supabase(env, 'releases?on_conflict=musicbrainz_id', {
+        method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({
+          artist_id: artist.id, title: item.title, slug: slugify(`${credit.name}-${item.title}`, item.id),
+          release_type: releaseType(item), release_date: item['first-release-date'] || null,
+          genres: (item.tags || []).sort((a, b) => b.count - a.count).slice(0, 5).map(tag => tag.name),
+          cover_url: `https://coverartarchive.org/release-group/${item.id}/front-500`, musicbrainz_id: item.id,
+          status: 'published', source: 'musicbrainz-curated', source_payload: item,
+          imported_at: new Date().toISOString(), last_synced_at: new Date().toISOString(), published_at: new Date().toISOString(),
+        }),
+      })
+      imported += 1
+    } catch {
+      failed.push(`${artistName} - ${title}`)
+    }
+    await new Promise(resolve => setTimeout(resolve, 1100))
+  }
+
+  return { batch, imported, failed, total: curatedCatalog.length, hasMore: (batch + 1) * size < curatedCatalog.length }
+}
+
 export default {
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext) {
     const today = new Date().toISOString().slice(0, 10)
@@ -93,7 +159,13 @@ export default {
   async fetch(request: Request, env: Env) {
     if (request.method !== 'POST') return new Response('Not found', { status: 404 })
     if (env.SYNC_TOKEN && request.headers.get('Authorization') !== `Bearer ${env.SYNC_TOKEN}`) return new Response('Unauthorized', { status: 401 })
-    const date = new URL(request.url).searchParams.get('date') || new Date().toISOString().slice(0, 10)
+    const url = new URL(request.url)
+    if (url.searchParams.get('mode') === 'classics') {
+      const batch = Number(url.searchParams.get('batch') || '0')
+      if (!Number.isInteger(batch) || batch < 0) return Response.json({ error: 'Invalid batch' }, { status: 400 })
+      return Response.json(await syncCuratedBatch(env, batch))
+    }
+    const date = url.searchParams.get('date') || new Date().toISOString().slice(0, 10)
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return Response.json({ error: 'Invalid date' }, { status: 400 })
     return Response.json(await syncDate(env, date))
   },
