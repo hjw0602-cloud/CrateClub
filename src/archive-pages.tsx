@@ -1,7 +1,7 @@
 ﻿import { useMemo, useState } from 'react'
 import { ArrowRight, Check, ChevronLeft, ChevronRight, Copy, Disc3, Eye, Grid3X3, ImageDown, Layers3, Lock, PenLine, Plus, Save, Search, Share2, Sparkles, Star, Trash2 } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
-import { initialReviews, releases } from './data'
+import { initialReviews, releases, users } from './data'
 import { templateLabels, type Crateprint, type CrateprintTemplate, type CrateprintTheme } from './crateprint'
 import './archive.css'
 
@@ -69,8 +69,9 @@ function StepTitle({ index, title, copy }: { index: string; title: string; copy:
 
 export function MyArchivePage() {
   const boards = [makeBoard('mine-01','JULY ROTATION','지금의 나를 설명하는 아홉 장','display-shelf','black-metal'),makeBoard('mine-02','2026 SO FAR','상반기 가장 오래 들은 앨범','ranked-crate','warm-gallery')]
-  return <div className="my-archive section-wrap"><header><div><span>MY CRATE / PERSONAL ARCHIVE</span><h1>만든 것과 들은 것이<br />시간순으로 쌓이는 곳</h1></div><Link className="primary-btn" to="/create"><Plus /> 새 CRATEPRINT</Link></header>
-    <section className="archive-section"><div className="archive-title"><div><span>CRATEPRINT ARCHIVE</span><h2>내가 만든 보드</h2></div><p>기본 공개 상태는 비공개입니다.</p></div><div className="board-archive">{boards.map((board,index) => <article key={board.id}><CrateprintPreview board={board} compact /><div><span><Lock /> PRIVATE</span><h3>{board.title}</h3><p>{templateLabels[board.templateType]} · {board.createdAt}</p><footer><button><PenLine /> 다시 편집</button><button><Copy /> 복제</button><button><Share2 /> 공개 설정</button><button aria-label="삭제"><Trash2 /></button></footer></div></article>)}</div></section>
+  const profile = users[0]
+  return <div className="my-archive section-wrap"><header className="my-profile"><div className="my-profile-person"><span className="my-profile-avatar">{profile.avatar}</span><div><small>{profile.handle}</small><h1>{profile.nickname}</h1><p>{profile.bio}</p><div className="my-taste-tags"><span>Alternative R&amp;B</span><span>K-Hip-Hop</span><span>Neo Soul</span></div></div></div><div className="my-profile-stats"><div><b>{boards.length}</b><span>CRATES</span></div><div><b>{releases.length}</b><span>기록한 앨범</span></div><div><b>8.5</b><span>평균 별점</span></div><div><b>3</b><span>선호 장르</span></div></div><button className="outline-btn"><PenLine /> 프로필 편집</button></header>
+    <section className="archive-section"><div className="archive-title"><div><span>MY CRATES</span><h2>내가 만든 Crate</h2></div><Link className="primary-btn" to="/create"><Plus /> 새 CRATEPRINT</Link></div><div className="board-archive">{boards.map((board,index) => <article key={board.id}><CrateprintPreview board={board} compact /><div><span><Lock /> PRIVATE</span><h3>{board.title}</h3><p>{templateLabels[board.templateType]} · {board.createdAt}</p><footer><button><PenLine /> 다시 편집</button><button><Copy /> 복제</button><button><Share2 /> 공개 설정</button><button aria-label="삭제"><Trash2 /></button></footer></div></article>)}</div></section>
     <section className="archive-section"><div className="archive-title"><div><span>ALBUM ARCHIVE</span><h2>앨범 감상 기록</h2></div><div className="archive-filters">{['전체','듣고 싶어요','듣는 중','들었어요'].map(item => <button key={item}>{item}</button>)}</div></div><div className="album-archive">{releases.map((release,index) => <article key={release.id}><img src={release.cover} alt="" /><div><span>{index % 3 === 0 ? '듣는 중' : '들었어요'}</span><h3>{release.title}</h3><p>{release.artist}</p><b><Star fill="currentColor" /> {(8.1 + index / 10).toFixed(1)}</b><small>{initialReviews.find(review => review.releaseId === release.id)?.text || '감상 기록을 남겨보세요.'}</small></div><aside><span>사용된 CRATEPRINT</span><b>{index % 2 + 1}</b></aside></article>)}</div></section>
   </div>
 }
