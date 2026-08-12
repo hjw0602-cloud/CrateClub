@@ -1,6 +1,6 @@
 ﻿import { useMemo, useState } from 'react'
 import { useEffect } from 'react'
-import { ArrowRight, Check, ChevronLeft, ChevronRight, Copy, Disc3, Eye, Grid3X3, Heart, ImageDown, Layers3, Lock, MessageCircle, PenLine, Plus, Save, Search, Share2, Sparkles, Star, Trash2 } from 'lucide-react'
+import { ArrowRight, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Copy, Disc3, Eye, Grid3X3, Heart, ImageDown, Layers3, Lock, MessageCircle, PenLine, Plus, Save, Search, Share2, Sparkles, Star, Trash2 } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { initialReviews, releases, users, type Release } from './data'
 import { templateLabels, type Crateprint, type CrateprintTemplate, type CrateprintTheme } from './crateprint'
@@ -49,6 +49,7 @@ export function CreatePage({ catalog: releases }: { catalog: typeof import('./da
   const [searching, setSearching] = useState(false)
   const [importingId, setImportingId] = useState('')
   const [searchError, setSearchError] = useState('')
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(true)
   const availableReleases = useMemo(() => [...releases, ...addedReleases.filter(item => !releases.some(release => release.id === item.id))], [releases, addedReleases])
   const normalizedQuery = query.trim().toLowerCase()
   const localMatches = availableReleases.filter(item => !normalizedQuery || `${item.title} ${item.artist} ${item.genres.join(' ')}`.toLowerCase().includes(normalizedQuery))
@@ -97,13 +98,14 @@ export function CreatePage({ catalog: releases }: { catalog: typeof import('./da
     else await navigator.clipboard.writeText(window.location.href)
   }
   const downloadImage = () => { saveLocal(); window.print() }
+  const activeAlbum = availableReleases.find(item => item.id === albumIds[activeSlot]) || availableReleases[0]
 
   return <div className="create-page section-wrap">
-    <div className="create-workspace"><section className="create-controls">
+    <div className="create-workspace"><section className={`mobile-live-preview ${mobilePreviewOpen ? 'open' : 'collapsed'}`}><header><div><span>LIVE PREVIEW · {activeSlot + 1}번</span><b>{activeAlbum.title}</b><small>{activeAlbum.artist}</small></div><button onClick={() => setMobilePreviewOpen(value => !value)} aria-label={mobilePreviewOpen ? '미니 미리보기 접기' : '미니 미리보기 펼치기'}>{mobilePreviewOpen ? <ChevronUp /> : <ChevronDown />}</button></header>{mobilePreviewOpen && <div className="mobile-preview-canvas"><CrateprintPreview board={board} catalog={availableReleases} compact activeAlbumIndex={activeSlot} onAlbumSelect={setActiveSlot} /></div>}</section><section className="create-controls">
       <div className="create-control-block"><StepTitle index="01" title="Crate" copy="CRATEPRINT에 표시할 제목과 한 줄 설명을 입력하세요." /><label className="text-field">제목<input value={title} onChange={event => setTitle(event.target.value)} /></label><label className="text-field">한 줄 설명<textarea value={description} onChange={event => setDescription(event.target.value)} /></label><div className="template-control"><span>템플릿</span><div className="preview-template-switcher">{createTemplates.map(([value,Icon,copy]) => <button className={template === value ? 'active' : ''} onClick={() => setTemplate(value)} key={value}><Icon /><span><b>{templateLabels[value]}</b><small>{copy}</small></span>{template === value && <Check />}</button>)}</div></div></div>
       <div className="create-control-block"><StepTitle index="02" title="앨범 선택" copy="번호를 고른 뒤 앨범을 검색하세요. 미리보기 커버를 눌러도 같은 번호가 선택됩니다." /><div className="active-slot-label"><span>{activeSlot + 1}번 앨범 선택 중</span><small>{availableReleases.length}개 저장됨 · Last.fm 전체 검색</small></div><div className="album-slot-picker">{albumIds.map((id,index) => { const album = availableReleases.find(item => item.id === id) || availableReleases[0]; return <button className={activeSlot === index ? 'active' : ''} onClick={() => setActiveSlot(index)} key={`${id}-${index}`}><b>{index + 1}</b><img src={album.cover} alt="" /><span>{album.title}<small>{album.artist}</small></span></button> })}</div><label className="album-search"><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder={`${activeSlot + 1}번에 넣을 앨범 또는 아티스트 검색`} /></label>{searching && <p className="album-search-status">Last.fm에서 검색 중...</p>}{searchError && <p className="album-search-error">{searchError}</p>}<div className="album-results">{visibleReleases.length ? visibleReleases.map(release => <article key={release.id}><img src={release.cover} alt="" /><div><b>{release.title}</b><small>{release.artist}{release.source === 'lastfm' ? ' · Last.fm' : ''}</small></div><button disabled={importingId === release.id} onClick={() => selectRelease(release)}><Plus /> {importingId === release.id ? '저장 중' : `${activeSlot + 1}번에 넣기`}</button></article>) : !searching && <p className="album-results-empty">검색 결과가 없습니다.</p>}</div></div>
       <div className="create-control-block create-output"><StepTitle index="03" title="출력" copy="완성한 CRATEPRINT를 저장하거나 바로 공유하세요." /><div className="output-actions"><button className="primary-btn" onClick={downloadImage}><ImageDown /> 이미지 다운로드</button><button className="outline-btn" onClick={shareBoard}><Share2 /> SNS 공유</button><button className="outline-btn" onClick={saveLocal}><Save /> 내 크레이트 저장</button></div><label className="public-check"><input type="checkbox" /> BOARD에 공개 <small>기본값은 비공개입니다.</small></label></div>
-    </section><aside className="create-preview"><div className="preview-head"><div><span>LIVE PREVIEW</span><b>{templateLabels[template]}</b></div></div><CrateprintPreview board={board} catalog={availableReleases} activeAlbumIndex={activeSlot} onAlbumSelect={setActiveSlot} onTitleChange={setTitle} onDescriptionChange={setDescription} /><p>커버를 누르면 왼쪽의 같은 번호가 선택됩니다.</p></aside></div>
+    </section><aside className="create-preview desktop-live-preview"><div className="preview-head"><div><span>LIVE PREVIEW</span><b>{templateLabels[template]}</b></div></div><CrateprintPreview board={board} catalog={availableReleases} activeAlbumIndex={activeSlot} onAlbumSelect={setActiveSlot} onTitleChange={setTitle} onDescriptionChange={setDescription} /><p>커버를 누르면 왼쪽의 같은 번호가 선택됩니다.</p></aside></div>
   </div>
 }
 function StepTitle({ index, title, copy }: { index: string; title: string; copy: string }) { return <header className="step-title"><span>{index}</span><h2>{title}</h2><p>{copy}</p></header> }
