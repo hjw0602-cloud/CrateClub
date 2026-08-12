@@ -1,8 +1,8 @@
 ﻿import { useMemo, useState } from 'react'
-import { ArrowRight, Check, ChevronLeft, ChevronRight, Copy, Disc3, Eye, Grid3X3, ImageDown, Layers3, Lock, PenLine, Plus, Search, Share2, Sparkles, Star, Trash2 } from 'lucide-react'
+import { ArrowRight, Check, ChevronLeft, ChevronRight, Copy, Disc3, Eye, Grid3X3, ImageDown, Layers3, Lock, PenLine, Plus, Save, Search, Share2, Sparkles, Star, Trash2 } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { initialReviews, releases } from './data'
-import { templateLabels, topicOptions, type Crateprint, type CrateprintRatio, type CrateprintTemplate, type CrateprintTheme } from './crateprint'
+import { templateLabels, type Crateprint, type CrateprintTemplate, type CrateprintTheme } from './crateprint'
 import './archive.css'
 
 const defaultAlbumIds = ['afterimage', 'blue-hour', 'no-skip', 'petals', 'heat-check', 'soft-focus', 'blue-hour', 'afterimage', 'petals']
@@ -35,10 +35,7 @@ export function LandingPage() {
 }
 
 export function CreatePage() {
-  const [step, setStep] = useState(1)
-  const [topic, setTopic] = useState(topicOptions[0])
   const [template, setTemplate] = useState<CrateprintTemplate>('classic-grid')
-  const [ratio, setRatio] = useState<CrateprintRatio>('4:5')
   const [title, setTitle] = useState('HEAVY ROTATION')
   const [description, setDescription] = useState('요즘 가장 자주 꺼내 듣는 아홉 장')
   const [albumIds, setAlbumIds] = useState(defaultAlbumIds)
@@ -48,21 +45,25 @@ export function CreatePage() {
     ['display-shelf', Disc3, '대표 LP를 진열하는 선반형'],
     ['crate-pile', Layers3, '겹쳐 꺼내 놓은 LP 더미형'],
   ] as const
-  const board = useMemo(() => ({ ...makeBoard('draft-local', title, description, template, 'black-metal'), prompt: topic, outputRatio: ratio, selectedAlbums: albumIds.map((releaseId, order) => ({ releaseId, order })), heroAlbumId: albumIds[0] }), [title, description, template, topic, ratio, albumIds])
+  const board = useMemo(() => ({ ...makeBoard('draft-local', title, description, template, 'black-metal'), selectedAlbums: albumIds.map((releaseId, order) => ({ releaseId, order })), heroAlbumId: albumIds[0] }), [title, description, template, albumIds])
   const swap = (index: number, delta: number) => { const target = index + delta; if (target < 0 || target >= albumIds.length) return; const next = [...albumIds]; [next[index], next[target]] = [next[target], next[index]]; setAlbumIds(next) }
   const replace = (index: number, releaseId: string) => { const next = [...albumIds]; next[index] = releaseId; setAlbumIds(next) }
   const saveLocal = () => localStorage.setItem('cd-crateprint-draft', JSON.stringify(board))
+  const shareBoard = async () => {
+    saveLocal()
+    const shareData = { title: `${title} · CRATEDIGGERS`, text: description, url: window.location.href }
+    if (navigator.share) await navigator.share(shareData)
+    else await navigator.clipboard.writeText(window.location.href)
+  }
+  const downloadImage = () => { saveLocal(); window.print() }
 
   return <div className="create-page section-wrap">
     <header className="create-heading"><div><span>CREATE / NEW CRATEPRINT</span><h1>앨범으로<br />취향 보드 만들기</h1></div><p>템플릿은 미리보기 옆에서 바로 바꿀 수 있습니다.<br />앨범 구성은 그대로 유지됩니다.</p></header>
-    <nav className="create-progress">{['주제','앨범','편집','출력'].map((label,index) => <button className={step === index + 1 ? 'active' : step > index + 1 ? 'done' : ''} onClick={() => setStep(index + 1)} key={label}><b>{step > index + 1 ? <Check /> : index + 1}</b><span>{label}</span></button>)}</nav>
     <div className="create-workspace"><section className="create-controls">
-      {step === 1 && <div className="control-step"><StepTitle index="01" title="무엇을 만들까요?" copy="주제를 고르거나 빈 보드에서 시작하세요." /><div className="topic-list">{topicOptions.map(item => <button className={topic === item ? 'active' : ''} onClick={() => setTopic(item)} key={item}>{item}<ChevronRight /></button>)}</div></div>}
-      {step === 2 && <div className="control-step"><StepTitle index="02" title="앨범 아홉 장을 담으세요" copy="검색 결과에서 선택한 슬롯으로 앨범을 교체합니다." /><label className="album-search"><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="앨범 또는 아티스트 검색" /></label><div className="album-results">{releases.filter(item => `${item.title} ${item.artist}`.toLowerCase().includes(query.toLowerCase())).map(release => <article key={release.id}><img src={release.cover} alt="" /><div><b>{release.title}</b><small>{release.artist}</small></div><button onClick={() => replace(albumIds.length - 1, release.id)}><Plus /> 담기</button></article>)}</div></div>}
-      {step === 3 && <div className="control-step"><StepTitle index="03" title="순서와 이야기를 편집하세요" copy="첫 번째 슬롯이 대표 앨범입니다." /><label className="text-field">제목<input value={title} onChange={event => setTitle(event.target.value)} /></label><label className="text-field">한 줄 설명<textarea value={description} onChange={event => setDescription(event.target.value)} /></label><div className="order-list">{albumIds.map((id,index) => { const album = releases.find(item => item.id === id) || releases[0]; return <article key={`${id}-${index}`}><b>{index === 0 ? 'HERO' : String(index + 1).padStart(2,'0')}</b><img src={album.cover} alt="" /><p>{album.title}<small>{album.artist}</small></p><button onClick={() => swap(index,-1)} aria-label="앞으로"><ChevronLeft /></button><button onClick={() => swap(index,1)} aria-label="뒤로"><ChevronRight /></button></article> })}</div></div>}
-      {step === 4 && <div className="control-step"><StepTitle index="04" title="출력 비율" copy="공유할 장소에 맞는 비율만 선택하세요." /><p className="fixed-theme-note"><Disc3 /> BLACK BACKGROUND · SINGLE THEME</p><h4>OUTPUT RATIO</h4><div className="ratio-select">{(['4:5','9:16','1:1','16:9'] as CrateprintRatio[]).map(item => <button className={ratio === item ? 'active' : ''} onClick={() => setRatio(item)} key={item}>{item}</button>)}</div><label className="public-check"><input type="checkbox" /> 완성 후 EXPLORE 공개 여부 선택 <small>기본값은 비공개입니다.</small></label></div>}
-      <footer><button onClick={() => setStep(Math.max(1,step - 1))} disabled={step === 1}><ChevronLeft /> 이전</button>{step < 4 ? <button className="primary-btn" onClick={() => setStep(step + 1)}>다음 단계 <ChevronRight /></button> : <button className="primary-btn" onClick={saveLocal}><ImageDown /> 미리보기 저장</button>}</footer>
-    </section><aside className="create-preview"><div className="preview-head"><div><span>LIVE PREVIEW</span><b>{templateLabels[template]}</b></div><span>{ratio}</span></div><div className="preview-template-switcher">{createTemplates.map(([value,Icon,copy]) => <button className={template === value ? 'active' : ''} onClick={() => setTemplate(value)} key={value}><Icon /><span><b>{templateLabels[value]}</b><small>{copy}</small></span>{template === value && <Check />}</button>)}</div><CrateprintPreview board={board} onTitleChange={setTitle} onDescriptionChange={setDescription} /><p>제목과 설명은 포스터 위에서 직접 클릭해 수정할 수 있습니다.</p></aside></div>
+      <div className="create-control-block"><StepTitle index="01" title="보드 정보" copy="CRATEPRINT에 표시할 제목과 한 줄 설명을 입력하세요." /><label className="text-field">제목<input value={title} onChange={event => setTitle(event.target.value)} /></label><label className="text-field">한 줄 설명<textarea value={description} onChange={event => setDescription(event.target.value)} /></label></div>
+      <div className="create-control-block"><StepTitle index="02" title="앨범 아홉 장을 담으세요" copy="검색하고, 담고, 원하는 순서로 정리하세요. 첫 번째 앨범이 대표 앨범입니다." /><label className="album-search"><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="앨범 또는 아티스트 검색" /></label>{query && <div className="album-results">{releases.filter(item => `${item.title} ${item.artist}`.toLowerCase().includes(query.toLowerCase())).map(release => <article key={release.id}><img src={release.cover} alt="" /><div><b>{release.title}</b><small>{release.artist}</small></div><button onClick={() => { replace(albumIds.length - 1, release.id); setQuery('') }}><Plus /> 담기</button></article>)}</div>}<div className="order-list">{albumIds.map((id,index) => { const album = releases.find(item => item.id === id) || releases[0]; return <article key={`${id}-${index}`}><b>{index === 0 ? 'HERO' : String(index + 1).padStart(2,'0')}</b><img src={album.cover} alt="" /><p>{album.title}<small>{album.artist}</small></p><button onClick={() => swap(index,-1)} aria-label="앞으로"><ChevronLeft /></button><button onClick={() => swap(index,1)} aria-label="뒤로"><ChevronRight /></button></article> })}</div></div>
+      <div className="create-control-block create-output"><StepTitle index="03" title="출력" copy="완성한 CRATEPRINT를 저장하거나 바로 공유하세요." /><div className="output-actions"><button className="primary-btn" onClick={downloadImage}><ImageDown /> 이미지 다운로드</button><button className="outline-btn" onClick={shareBoard}><Share2 /> SNS 공유</button><button className="outline-btn" onClick={saveLocal}><Save /> 내 크레이트 저장</button></div><label className="public-check"><input type="checkbox" /> EXPLORE에 공개 <small>기본값은 비공개입니다.</small></label></div>
+    </section><aside className="create-preview"><div className="preview-head"><div><span>LIVE PREVIEW</span><b>{templateLabels[template]}</b></div></div><div className="preview-template-switcher">{createTemplates.map(([value,Icon,copy]) => <button className={template === value ? 'active' : ''} onClick={() => setTemplate(value)} key={value}><Icon /><span><b>{templateLabels[value]}</b><small>{copy}</small></span>{template === value && <Check />}</button>)}</div><CrateprintPreview board={board} onTitleChange={setTitle} onDescriptionChange={setDescription} /><p>제목과 설명은 포스터 위에서 직접 클릭해 수정할 수 있습니다.</p></aside></div>
   </div>
 }
 function StepTitle({ index, title, copy }: { index: string; title: string; copy: string }) { return <header className="step-title"><span>{index}</span><h2>{title}</h2><p>{copy}</p></header> }
