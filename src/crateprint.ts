@@ -1,4 +1,4 @@
-export type CrateprintTemplate = 'display-shelf' | 'vinyl-peek' | 'table-spread' | 'crate-pile' | 'record-ring' | 'record-halo' | 'quiet-rack' | 'ranked-crate' | 'classic-grid'
+export type CrateprintTemplate = 'display-shelf' | 'vinyl-peek' | 'table-spread' | 'crate-pile' | 'record-halo' | 'quiet-rack' | 'ranked-crate' | 'classic-grid'
 export type CrateprintTheme = 'black-metal' | 'frosted-acrylic' | 'warm-gallery'
 export type CrateprintRatio = '4:5' | '9:16' | '1:1' | '16:9'
 
@@ -45,7 +45,6 @@ export const templateLabels: Record<CrateprintTemplate, string> = {
   'vinyl-peek': 'VINYL PEEK',
   'table-spread': 'TABLE SPREAD',
   'crate-pile': 'CRATE PILE',
-  'record-ring': 'RECORD RING',
   'record-halo': 'RECORD HALO',
   'quiet-rack': 'QUIET RACK',
   'ranked-crate': 'RANKED CRATE',
