@@ -521,6 +521,184 @@
 .archive-print.ratio-16-9.template-crate-pile .print-crate-pile figure:nth-child(8){left:60%;top:62%;z-index:5;transform:rotate(8deg)}
 .archive-print.ratio-16-9.template-crate-pile .print-crate-pile figure:nth-child(9){width:23%;left:38.5%;top:58%;z-index:9;transform:rotate(1deg)}
 
+/* RECORD RING — LPs arranged as a clean circular wreath. */
+.template-record-ring,
+.template-record-halo{
+  padding:5.5%;
+  background:#090a0c;
+}
+.template-record-ring>h3,
+.template-record-halo>h3{
+  margin:3.5% 0 .5%;
+  font-size:clamp(23px,3.7vw,50px);
+  font-weight:540;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+}
+.template-record-ring>p,
+.template-record-halo>p{
+  max-width:78%;
+  margin:0 0 3%;
+  color:#aeb2b4;
+}
+.print-record-ring,
+.print-record-halo{
+  position:relative;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 48%,#ffffff10 0 1px,transparent 2px),
+    radial-gradient(circle at 50% 48%,#11161b 0 28%,#08090b 63%,#050607 100%);
+  border:1px solid #ffffff17;
+  border-radius:2px;
+  box-shadow:inset 0 0 70px #0008;
+}
+.print-record-ring:before,
+.print-record-halo:before{
+  content:"";
+  position:absolute;
+  inset:12%;
+  border:1px solid #ffffff12;
+  border-radius:50%;
+  pointer-events:none;
+}
+.print-record-ring figure,
+.print-record-halo figure{
+  position:absolute;
+  margin:0;
+  aspect-ratio:1;
+  transition:transform .28s ease,filter .28s ease;
+}
+.print-record-ring figure{
+  width:31%;
+  border-radius:50%;
+  filter:drop-shadow(0 7px 7px #0007);
+}
+.print-record-ring figure>i{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:
+    radial-gradient(circle,#d7e1e5 0 5%,#111 5.5% 8%,transparent 8.5%),
+    repeating-radial-gradient(circle,#111315 0 1px,#24282b 2px 3px);
+  box-shadow:inset 0 0 0 1px #ffffff16,inset 0 0 36px #000;
+}
+.print-record-ring img{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:42%;
+  height:42%;
+  object-fit:cover;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 0 1px #ffffff22;
+}
+.print-record-ring figcaption{
+  position:absolute;
+  left:50%;
+  top:50%;
+  z-index:2;
+  transform:translate(-50%,-50%);
+  color:#fff;
+  font:700 clamp(5px,.7vw,9px)/1 ui-monospace,monospace;
+  text-shadow:0 1px 3px #000;
+}
+.archive-print.ratio-4-5.template-record-ring .print-record-ring figure:nth-child(1){left:34.5%;top:0;z-index:3;transform:rotate(-8deg)}
+.archive-print.ratio-4-5.template-record-ring .print-record-ring figure:nth-child(2){left:58%;top:11%;z-index:4;transform:rotate(18deg)}
+.archive-print.ratio-4-5.template-record-ring .print-record-ring figure:nth-child(3){left:66%;top:38%;z-index:5;transform:rotate(52deg)}
+.archive-print.ratio-4-5.template-record-ring .print-record-ring figure:nth-child(4){left:50%;top:63%;z-index:6;transform:rotate(98deg)}
+.archive-print.ratio-4-5.template-record-ring .print-record-ring figure:nth-child(5){left:20%;top:63%;z-index:6;transform:rotate(142deg)}
+.archive-print.ratio-4-5.template-record-ring .print-record-ring figure:nth-child(6){left:3%;top:38%;z-index:5;transform:rotate(188deg)}
+.archive-print.ratio-4-5.template-record-ring .print-record-ring figure:nth-child(7){left:11%;top:11%;z-index:4;transform:rotate(226deg)}
+.archive-print.ratio-4-5.template-record-ring .print-record-ring figure:nth-child(8){left:34.5%;top:31%;z-index:9;transform:rotate(-2deg)}
+
+/* RECORD HALO — one square hero jacket over seven square jackets. */
+.print-record-halo{
+  background:
+    radial-gradient(circle at 50% 46%,#ffffff12 0 1px,transparent 2px),
+    linear-gradient(140deg,#14181d,#090a0c 64%,#050607);
+}
+.print-record-halo figure{
+  width:30%;
+  filter:drop-shadow(0 8px 8px #0008);
+}
+.print-record-halo img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border:1px solid #ffffff18;
+  background:#0d0f12;
+}
+.print-record-halo figure:not(.halo-hero) img{
+  opacity:.92;
+}
+.print-record-halo .halo-hero{
+  width:43%;
+  left:28.5%;
+  top:29%;
+  z-index:20;
+  transform:rotate(-1deg);
+  filter:drop-shadow(0 15px 16px #000b);
+}
+.print-record-halo .halo-hero img{
+  border-color:#ffffff35;
+  box-shadow:0 0 0 1px #000,inset 0 0 0 1px #ffffff12;
+}
+.print-record-halo figure>b{
+  position:absolute;
+  left:5%;
+  top:5%;
+  z-index:3;
+  color:#f3f5f5;
+  background:#07080acc;
+  padding:2px 5px;
+  font:700 clamp(5px,.7vw,9px)/1 ui-monospace,monospace;
+}
+.print-record-halo figcaption{
+  position:absolute;
+  left:6%;
+  bottom:6%;
+  z-index:3;
+  color:#f3f5f5;
+  font:700 clamp(5px,.7vw,9px)/1 ui-monospace,monospace;
+  letter-spacing:.12em;
+  text-shadow:0 1px 3px #000;
+}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(2){left:35%;top:2%;z-index:3;transform:rotate(-5deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(3){left:61%;top:14%;z-index:4;transform:rotate(13deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(4){left:61%;top:46%;z-index:5;transform:rotate(22deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(5){left:35%;top:63%;z-index:6;transform:rotate(5deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(6){left:9%;top:46%;z-index:5;transform:rotate(-18deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(7){left:9%;top:14%;z-index:4;transform:rotate(-12deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(8){left:35%;top:33%;z-index:2;transform:rotate(3deg) scale(.96)}
+.print-record-ring figure:hover,
+.print-record-halo figure:hover{
+  z-index:30!important;
+  filter:drop-shadow(0 12px 12px #000b);
+}
+
+.archive-print.ratio-9-16.template-record-ring .print-record-ring figure{width:36%}
+.archive-print.ratio-9-16.template-record-ring .print-record-ring figure:nth-child(1){left:32%;top:5%}
+.archive-print.ratio-9-16.template-record-ring .print-record-ring figure:nth-child(2){left:60%;top:19%}
+.archive-print.ratio-9-16.template-record-ring .print-record-ring figure:nth-child(3){left:62%;top:45%}
+.archive-print.ratio-9-16.template-record-ring .print-record-ring figure:nth-child(4){left:32%;top:62%}
+.archive-print.ratio-9-16.template-record-ring .print-record-ring figure:nth-child(5){left:2%;top:45%}
+.archive-print.ratio-9-16.template-record-ring .print-record-ring figure:nth-child(6){left:4%;top:19%}
+.archive-print.ratio-9-16.template-record-ring .print-record-ring figure:nth-child(7){left:32%;top:31%}
+.archive-print.ratio-9-16.template-record-ring .print-record-ring figure:nth-child(8){left:32%;top:38%;z-index:9}
+.archive-print.ratio-9-16.template-record-halo .print-record-halo figure{width:36%}
+.archive-print.ratio-9-16.template-record-halo .print-record-halo .halo-hero{width:56%;left:22%;top:31%}
+.archive-print.ratio-9-16.template-record-halo .print-record-halo figure:nth-child(2){left:32%;top:5%}
+.archive-print.ratio-9-16.template-record-halo .print-record-halo figure:nth-child(3){left:60%;top:20%}
+.archive-print.ratio-9-16.template-record-halo .print-record-halo figure:nth-child(4){left:58%;top:49%}
+.archive-print.ratio-9-16.template-record-halo .print-record-halo figure:nth-child(5){left:32%;top:66%}
+.archive-print.ratio-9-16.template-record-halo .print-record-halo figure:nth-child(6){left:4%;top:49%}
+.archive-print.ratio-9-16.template-record-halo .print-record-halo figure:nth-child(7){left:4%;top:20%}
+.archive-print.ratio-9-16.template-record-halo .print-record-halo figure:nth-child(8){left:32%;top:36%;z-index:2}
+
 .archive-print h3[contenteditable="true"],
 .archive-print p[contenteditable="true"]{
   cursor:text;
