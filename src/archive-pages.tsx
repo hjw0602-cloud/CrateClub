@@ -11,16 +11,11 @@ const catalogApi = 'https://cratediggers-release-sync.hjw0602.workers.dev'
 type SearchRelease = Release & { source?: 'lastfm' | 'musicbrainz'; externalId?: string; musicbrainzId?: string }
 
 const officialBoards: Crateprint[] = [
-  makeBoard('official-01', 'HEAVY ROTATION', '요즘 가장 자주 꺼내 듣는 아홉 장', 'display-shelf', 'black-metal', true),
-  makeBoard('official-02', 'VINYL NOTES', '커버 뒤로 드러나는 아홉 장의 물성', 'vinyl-peek', 'frosted-acrylic', true),
-  makeBoard('official-03', 'ON THE TABLE', '지금의 취향을 테이블 위에 펼치다', 'table-spread', 'frosted-acrylic', true),
-  makeBoard('official-04', 'QUIET SELECTION', '조용한 진열로 남긴 이번 달의 기록', 'quiet-rack', 'warm-gallery', true),
-  makeBoard('official-05', '2026 SO FAR', '올해의 반환점을 지나며 남긴 순위', 'ranked-crate', 'warm-gallery', true),
-  makeBoard('official-06', 'LATE NIGHT R&B', '불을 낮추고 오래 듣는 앨범들', 'classic-grid', 'black-metal', true),
+  makeBoard('official-01', 'CLASSIC NINE', '가장 익숙한 3×3으로 정리한 지금의 취향', 'classic-grid', 'black-metal', true),
+  makeBoard('official-02', 'DISPLAY SHELF', '대표 앨범을 앞세워 진열한 아홉 장', 'display-shelf', 'black-metal', true),
+  makeBoard('official-03', 'FRESH FROM THE CRATE', '방금 꺼내 놓은 LP처럼 겹쳐진 취향', 'crate-pile', 'black-metal', true),
+  makeBoard('official-04', 'CENTER RECORD', '중앙 히어로 앨범과 원형으로 둘러싼 여덟 장', 'record-halo', 'black-metal', true),
 ]
-
-officialBoards.push(makeBoard('official-07', 'FRESH FROM THE CRATE', 'Records pulled, overlapped and left exactly where the digging happened.', 'crate-pile', 'black-metal', true))
-officialBoards.push(makeBoard('official-08', 'CENTER RECORD', 'A hero cover held in the middle of eight orbiting jackets.', 'record-halo', 'black-metal', true))
 
 function makeBoard(id: string, title: string, description: string, templateType: CrateprintTemplate, _theme: CrateprintTheme, isPublic = false): Crateprint {
   const now = '2026.07.25'
@@ -28,12 +23,14 @@ function makeBoard(id: string, title: string, description: string, templateType:
 }
 
 export function LandingPage() {
+  const landingTemplates = ['classic-grid','display-shelf','crate-pile','record-halo'] as const
+  const heroBoard = officialBoards[3]
   return <div className="archive-landing">
     <section className="landing-hero">
-      <div className="landing-copy"><span>PERSONAL MUSIC ARCHIVE</span><h1>당신을 설명하는<br />앨범을 진열하세요.</h1><p>좋아하는 앨범을 골라 나만의 CRATEPRINT를 만들고,<br />시간이 지날수록 음악 취향을 아카이브하세요.</p><div><Link className="primary-btn" to="/create">지금 만들기 <ArrowRight /></Link><a className="outline-btn" href="#templates">템플릿 보기</a></div><small>회원가입 없이 제작과 미리보기까지</small></div>
-      <div className="landing-result"><CrateprintPreview board={officialBoards[0]} compact /><div className="landing-result-label"><span>DISPLAY SHELF / 4:5</span><b>DIG. COLLECT. DISPLAY.</b></div></div>
+      <div className="landing-copy"><span>DIG. COLLECT. DISPLAY.</span><h1>MAKE YOUR<br />CRATE.</h1><p>좋아하는 앨범 9장을 고르고,<br />나만의 CRATEPRINT로 남기세요.</p><div><Link className="primary-btn" to="/create">지금 만들기 <ArrowRight /></Link><a className="outline-btn" href="#templates">템플릿 보기</a></div><small>미리보기까지 로그인 없이 바로 시작</small></div>
+      <div className="landing-result"><CrateprintPreview board={heroBoard} compact /><div className="landing-result-label"><span>RECORD HALO / 4:5</span><b>CRATE INDEX 09</b></div></div>
     </section>
-    <section id="templates" className="landing-templates section-wrap"><header><span>EIGHT WAYS TO DISPLAY</span><h2>같은 앨범, 다른 취향의 형태</h2><p>앨범 선택은 그대로 유지한 채 언제든 템플릿을 바꿔 비교할 수 있습니다.</p></header><div>{(['display-shelf','vinyl-peek','table-spread','quiet-rack','ranked-crate','classic-grid','crate-pile','record-halo'] as CrateprintTemplate[]).map((template,index) => <article key={template}><CrateprintPreview board={{ ...(officialBoards[index] || officialBoards[0]), templateType: template }} compact /><span>0{index + 1}</span><h3>{templateLabels[template]}</h3><p>{{'display-shelf':'대표 LP와 여덟 장을 선반에 진열한 오리지널','vinyl-peek':'커버 뒤로 바이닐이 은근히 보이는 정돈형','table-spread':'LP를 테이블 위에 느슨하게 펼친 오버헤드형','crate-pile':'바닥에 꺼내 놓은 LP가 중앙으로 겹쳐지는 더미형','record-halo':'중앙 히어로 커버 뒤에 네모난 재킷이 원형으로 깔리는 후광형','quiet-rack':'투명 아크릴 레일 위에 놓인 갤러리형','ranked-crate':'순위를 음악 차트처럼 편집한 보드','classic-grid':'익숙한 격자를 공유 포스터로 확장한 보드'}[template]}</p></article>)}</div></section>
+    <section id="templates" className="landing-templates section-wrap"><header><span>FOUR WAYS TO START</span><h2>네 가지 방식으로<br />취향을 정리하세요.</h2><p>현재 CREATE에서 바로 만들 수 있는 템플릿만 보여줍니다.</p></header><div>{landingTemplates.map((template,index) => <article key={template}><CrateprintPreview board={{ ...(officialBoards[index] || officialBoards[0]), templateType: template }} compact /><span>0{index + 1}</span><h3>{templateLabels[template]}</h3><p>{{'classic-grid':'가장 익숙한 3×3 공유 포스터','display-shelf':'대표 LP를 중심으로 세운 진열형','crate-pile':'crate digging 현장처럼 겹쳐진 더미형','record-halo':'중앙 히어로 앨범 뒤로 원형 배치'}[template]}</p></article>)}</div></section>
     <section className="landing-flow section-wrap"><span>HOW IT WORKS</span><div>{[['01','DIG','앨범을 찾고'],['02','COLLECT','보드에 담고'],['03','DISPLAY','완성해 공유하고'],['04','ARCHIVE','시간과 함께 쌓습니다']].map(item => <article key={item[0]}><b>{item[0]}</b><h3>{item[1]}</h3><p>{item[2]}</p></article>)}</div><Link to="/board">공개 CRATEPRINT 둘러보기 <ArrowRight /></Link></section>
   </div>
 }
