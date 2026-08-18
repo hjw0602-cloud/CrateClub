@@ -31,6 +31,7 @@ export function LandingPage() {
       <div className="landing-result"><CrateprintPreview board={heroBoard} compact /><div className="landing-result-label"><span>RECORD HALO / 4:5</span><b>CRATE INDEX 09</b></div></div>
     </section>
     <section id="templates" className="landing-templates section-wrap"><header><span>FOUR WAYS TO START</span><h2>네 가지 방식으로<br />취향을 정리하세요.</h2><p>현재 CREATE에서 바로 만들 수 있는 템플릿만 보여줍니다.</p></header><div>{landingTemplates.map((template,index) => <article key={template}><CrateprintPreview board={{ ...(officialBoards[index] || officialBoards[0]), templateType: template }} compact /><span>0{index + 1}</span><h3>{templateLabels[template]}</h3><p>{{'classic-grid':'가장 익숙한 3×3 공유 포스터','display-shelf':'대표 LP를 중심으로 세운 진열형','crate-pile':'crate digging 현장처럼 겹쳐진 더미형','record-halo':'중앙 히어로 앨범 뒤로 원형 배치'}[template]}</p></article>)}</div></section>
+    <section className="h4-manifesto" aria-label="CRATEDIGGERS brand statement"><div className="h4-manifesto-mark" aria-hidden="true"><i /><i /><i /></div><div><b>CRATEDIGGERS</b><span>DIG <em>/</em> LISTEN <em>/</em> KEEP</span></div><small>PERSONAL MUSIC ARCHIVE<br />ISSUE 001 — 2026</small></section>
     <section className="landing-flow section-wrap"><span>HOW IT WORKS</span><div>{[['01','DIG','앨범을 찾고'],['02','COLLECT','보드에 담고'],['03','DISPLAY','완성해 공유하고'],['04','ARCHIVE','시간과 함께 쌓습니다']].map(item => <article key={item[0]}><b>{item[0]}</b><h3>{item[1]}</h3><p>{item[2]}</p></article>)}</div><Link to="/board">공개 CRATEPRINT 둘러보기 <ArrowRight /></Link></section>
   </div>
 }

@@ -64,7 +64,7 @@ type AppContext = {
 
 function Header({ dark, setDark, loggedIn, setAuthOpen, mobileOpen, setMobileOpen, onLogout }: any) {
   return <header className="header">
-    <Link className="brand" to="/"><Disc3 size={21} /><span>{BRAND}</span></Link>
+    <Link className="brand" to="/" aria-label="CRATEDIGGERS home"><BrandMark /><span>{BRAND}</span></Link>
     <nav className={mobileOpen ? 'desktop-nav open' : 'desktop-nav'}>
       <NavLink to="/create">CREATE</NavLink><NavLink to="/review">REVIEW</NavLink><NavLink to="/board">BOARD</NavLink><NavLink to="/my-crate">MY CRATE</NavLink>
     </nav>
@@ -75,6 +75,10 @@ function Header({ dark, setDark, loggedIn, setAuthOpen, mobileOpen, setMobileOpe
       <button className="icon-btn mobile-menu" onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X /> : <Menu />}</button>
     </div>
   </header>
+}
+
+function BrandMark({ inverse = false }: { inverse?: boolean }) {
+  return <span className={`h-mark${inverse ? ' inverse' : ''}`} aria-hidden="true"><i /><i /><i /></span>
 }
 
 function HomePage(ctx: AppContext) {
