@@ -10,7 +10,7 @@
 @media(max-width:640px){.landing-hero{padding:46px 18px 90px}.landing-copy h1{font-size:48px}.landing-copy p br{display:none}.landing-copy>div{display:grid}.landing-result{padding:20px 10px}.landing-templates,.landing-flow{padding-top:62px;padding-bottom:75px}.landing-templates>div,.explore-grid{grid-template-columns:1fr}.landing-flow>div{grid-template-columns:1fr 1fr}.create-page,.my-archive,.explore-page,.explore-detail{padding:30px 15px 90px}.create-heading,.my-archive>header{display:block}.create-heading h1,.my-archive>header h1,.explore-page>header h1{font-size:43px}.create-heading>p{font-size:11px}.create-progress button{justify-content:center}.create-progress button span{display:none}.create-workspace{display:flex;flex-direction:column;gap:25px}.create-preview{order:-1;padding:12px}.create-preview>.archive-print{max-height:68vh;width:auto;max-width:100%}.theme-select{grid-template-columns:1fr}.board-archive article{grid-template-columns:140px 1fr;gap:13px}.board-archive article h3{font-size:17px}.board-archive footer button{padding:6px}.album-archive article{grid-template-columns:60px 1fr}.album-archive img{width:60px;height:60px}.album-archive aside{display:none}.archive-title{display:block}.archive-filters{margin-top:12px;flex-wrap:wrap}.explore-page>nav{overflow:auto}.explore-page>nav button{white-space:nowrap}.explore-detail-grid h1{font-size:42px}.used-albums>div{grid-template-columns:1fr}.archive-print>h3{font-size:25px}.archive-print>p{font-size:7px}.print-spread figure{filter:drop-shadow(0 2px 3px #0002)}}
 
 /* H4 landing direction — isolated overrides for easy rollback. */
-.archive-landing,.create-page,.my-archive,.explore-page,.explore-detail{--archive-deep:#09090b;--archive-paper:#f3f0ea;--archive-signal:#645cff}
+.archive-landing{--archive-deep:#09090b;--archive-paper:#f3f0ea;--archive-signal:#645cff}
 .landing-hero{min-height:calc(100vh - 78px);grid-template-columns:.88fr 1.12fr;background-color:var(--archive-deep);background-image:linear-gradient(90deg,#09090b 0%,#09090bee 42%,#09090b60 100%),url('/images/h4-architecture.png');background-size:cover;background-position:center;position:relative}
 .landing-hero:after{content:"";position:absolute;right:7%;top:0;width:54px;height:100%;background:#645cff;mix-blend-mode:screen;opacity:.82}.landing-copy:before{content:"001 / PERSONAL MUSIC ARCHIVE";display:block;font-size:8px;letter-spacing:.22em;color:#777;margin-bottom:42px}.landing-copy>span,.landing-templates>header>span,.landing-flow>span,.create-heading span,.my-archive>header span,.archive-title span,.explore-page>header>span,.used-albums>span{letter-spacing:.22em;color:var(--archive-signal)}.landing-copy h1{font-family:'Archivo Black';font-size:clamp(58px,7.2vw,108px);line-height:.88}.landing-copy .primary-btn{background:#f5f2eb;color:#111;border-color:#f5f2eb}.landing-copy .primary-btn:hover{background:#645cff;color:#fff;border-color:#645cff}.landing-result{z-index:1}.landing-result:after{content:"";position:absolute;left:18px;bottom:0;width:110px;height:5px;background:#645cff}
 .landing-templates>div{grid-template-columns:repeat(4,1fr);gap:20px}.landing-templates article{border-top:1px solid var(--ink);padding-top:14px;position:relative}.landing-templates article:nth-child(even){transform:translateY(30px)}.landing-templates article:after{content:"";position:absolute;top:10px;right:0;width:32px;height:3px;background:#645cff}.landing-templates article>span{letter-spacing:.14em}.landing-templates article h3{letter-spacing:.04em}.landing-flow{border-top:0}.landing-flow article{border-top-width:1px}.landing-flow h3{letter-spacing:.08em}.landing-flow>a{border-bottom:3px solid #645cff;padding-bottom:7px}
@@ -488,15 +488,15 @@
 }
 
 /* 4:5: narrow at the top, dense through the center, then taper at the foot. */
-.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(1){width:38%;left:31%;top:28%;z-index:10;transform:rotate(-1deg)}
-.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(2){width:31%;left:34.5%;top:0;z-index:2;transform:rotate(-1.5deg)}
-.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(3){width:34%;left:5%;top:6%;z-index:3;transform:rotate(-11deg)}
-.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(4){width:34%;left:61%;top:7%;z-index:4;transform:rotate(10deg)}
-.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(5){width:35%;left:5%;top:31%;z-index:6;transform:rotate(-8deg)}
-.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(6){width:35%;left:61%;top:32%;z-index:5;transform:rotate(9deg)}
-.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(7){width:34%;left:7%;top:56%;z-index:4;transform:rotate(-10deg)}
-.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(8){width:34%;left:59%;top:56%;z-index:4;transform:rotate(8deg)}
-.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(9){width:36%;left:32%;top:58%;z-index:9;transform:rotate(.8deg)}
+.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(1){width:38%;left:31%;top:31%;z-index:10;transform:rotate(-1deg)}
+.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(2){width:31%;left:34.5%;top:4%;z-index:2;transform:rotate(-1.5deg)}
+.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(3){width:34%;left:5%;top:10%;z-index:3;transform:rotate(-11deg)}
+.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(4){width:34%;left:61%;top:11%;z-index:4;transform:rotate(10deg)}
+.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(5){width:35%;left:5%;top:34%;z-index:6;transform:rotate(-8deg)}
+.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(6){width:35%;left:61%;top:35%;z-index:5;transform:rotate(9deg)}
+.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(7){width:34%;left:7%;top:59%;z-index:4;transform:rotate(-10deg)}
+.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(8){width:34%;left:59%;top:59%;z-index:4;transform:rotate(8deg)}
+.archive-print.ratio-4-5.template-crate-pile .print-crate-pile figure:nth-child(9){width:36%;left:32%;top:61%;z-index:9;transform:rotate(.8deg)}
 
 .archive-print.ratio-9-16.template-crate-pile .print-crate-pile figure:nth-child(1){width:47%;left:26.5%;top:32%;z-index:10;transform:rotate(-1deg)}
 .archive-print.ratio-9-16.template-crate-pile .print-crate-pile figure:nth-child(2){width:39%;left:30.5%;top:4%;z-index:2;transform:rotate(-1.5deg)}
@@ -640,14 +640,15 @@
   letter-spacing:.12em;
   text-shadow:0 1px 3px #000;
 }
-.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(2){left:36%;top:2%;z-index:3;transform:rotate(-24deg)}
-.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(3){left:58%;top:12%;z-index:4;transform:rotate(18deg)}
-.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(4){left:64%;top:37%;z-index:5;transform:rotate(58deg)}
-.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(5){left:56%;top:60%;z-index:6;transform:rotate(116deg)}
-.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(6){left:36%;top:69%;z-index:6;transform:rotate(174deg)}
-.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(7){left:14%;top:60%;z-index:5;transform:rotate(-136deg)}
-.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(8){left:8%;top:36%;z-index:4;transform:rotate(-82deg)}
-.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(9){left:14%;top:12%;z-index:3;transform:rotate(-38deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo .halo-hero{top:31%}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(2){left:36%;top:5%;z-index:3;transform:rotate(-24deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(3){left:58%;top:15%;z-index:4;transform:rotate(18deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(4){left:64%;top:40%;z-index:5;transform:rotate(58deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(5){left:56%;top:62%;z-index:6;transform:rotate(116deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(6){left:36%;top:71%;z-index:6;transform:rotate(174deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(7){left:14%;top:62%;z-index:5;transform:rotate(-136deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(8){left:8%;top:39%;z-index:4;transform:rotate(-82deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(9){left:14%;top:15%;z-index:3;transform:rotate(-38deg)}
 .print-record-halo figure:hover{
   z-index:30!important;
   filter:drop-shadow(0 12px 12px #000b);
@@ -663,6 +664,31 @@
 .archive-print.ratio-9-16.template-record-halo .print-record-halo figure:nth-child(7){left:10%;top:61%;transform:rotate(-136deg)}
 .archive-print.ratio-9-16.template-record-halo .print-record-halo figure:nth-child(8){left:6%;top:40%;transform:rotate(-82deg)}
 .archive-print.ratio-9-16.template-record-halo .print-record-halo figure:nth-child(9){left:10%;top:16%;transform:rotate(-38deg)}
+
+/* CREATE preview alignment fixes. Keep active 4:5 templates optically centered and away from clipped edges. */
+.print-grid{
+  flex:0 1 auto;
+  height:100%;
+  aspect-ratio:1;
+  margin:auto;
+  align-self:center;
+}
+.print-record-halo figure{
+  width:26%;
+}
+.print-record-halo .halo-hero{
+  width:42%;
+  left:29%;
+}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo .halo-hero{top:31%}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(2){left:37%;top:7%;z-index:3;transform:rotate(-22deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(3){left:58%;top:16%;z-index:4;transform:rotate(16deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(4){left:63%;top:40%;z-index:5;transform:rotate(52deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(5){left:56%;top:62%;z-index:6;transform:rotate(110deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(6){left:37%;top:68%;z-index:6;transform:rotate(172deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(7){left:16%;top:62%;z-index:5;transform:rotate(-126deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(8){left:11%;top:40%;z-index:4;transform:rotate(-74deg)}
+.archive-print.ratio-4-5.template-record-halo .print-record-halo figure:nth-child(9){left:16%;top:16%;z-index:3;transform:rotate(-34deg)}
 
 .archive-print h3[contenteditable="true"],
 .archive-print p[contenteditable="true"]{
