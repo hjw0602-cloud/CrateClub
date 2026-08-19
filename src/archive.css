@@ -676,6 +676,18 @@
 .print-record-halo figure{
   width:26%;
 }
+.archive-print>footer{
+  border-top:0;
+}
+.print-record-halo,
+.print-record-halo:before,
+.print-record-halo img,
+.print-record-halo .halo-hero img{
+  border:0;
+}
+.print-record-halo figure:not(.halo-hero):before{
+  display:none;
+}
 .print-record-halo .halo-hero{
   width:42%;
   left:29%;
