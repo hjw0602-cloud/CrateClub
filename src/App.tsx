@@ -39,10 +39,10 @@ function App() {
         <Route path="/create" element={<CreatePage catalog={backend.catalog} />} />
         <Route path="/review" element={<ReviewPage {...ctx} />} />
         <Route path="/my-crate" element={<MyArchivePage />} />
-        <Route path="/board" element={<ExplorePage />} />
-        <Route path="/board/:id" element={<ExploreDetailPage />} />
-        <Route path="/explore" element={<Navigate to="/board" replace />} />
+        <Route path="/explore" element={<ExplorePage />} />
         <Route path="/explore/:id" element={<ExploreDetailPage />} />
+        <Route path="/board" element={<Navigate to="/explore" replace />} />
+        <Route path="/board/:id" element={<Navigate to="/explore" replace />} />
         <Route path="/release/:id" element={<ReleasePage {...ctx} />} />
         <Route path="/search" element={<SearchPage reviews={backend.reviews} />} />
         <Route path="/me" element={<Navigate to="/my-crate" replace />} />
@@ -66,7 +66,7 @@ function Header({ dark, setDark, loggedIn, setAuthOpen, mobileOpen, setMobileOpe
   return <header className="header">
     <Link className="brand" to="/" aria-label="CRATEDIGGERS home"><BrandMark /><span>{BRAND}</span></Link>
     <nav className={mobileOpen ? 'desktop-nav open' : 'desktop-nav'}>
-      <NavLink to="/create">CREATE</NavLink><NavLink to="/review">REVIEW</NavLink><NavLink to="/board">BOARD</NavLink><NavLink to="/my-crate">MY CRATE</NavLink>
+      <NavLink to="/create">CREATE</NavLink><NavLink to="/review">REVIEW</NavLink><NavLink to="/explore">EXPLORE</NavLink><NavLink to="/my-crate">MY CRATE</NavLink>
     </nav>
     <div className="header-actions">
       <Link className="icon-btn" to="/search" title="검색"><Search size={19} /></Link>
@@ -352,6 +352,6 @@ function AuthModal({ onClose }: { onClose: () => void }) {
   return <div className="modal-backdrop" onMouseDown={onClose}><div className="auth-modal" onMouseDown={e => e.stopPropagation()}><button className="close" onClick={onClose}><X /></button><Disc3 size={32} /><small>{BRAND}</small><h2>{signup ? '새 계정 만들기' : '다시 오신 것을 환영해요'}</h2><p>좋은 음악을 발견하고 당신의 한줄을 남겨보세요.</p><button className="kakao" onClick={kakao}>카카오로 계속하기</button><div className="or"><span>또는</span></div>{signup && <input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="닉네임" />}<input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" /><input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호" />{error && <p className="form-error">{error}</p>}{notice && <p className="form-notice">{notice}</p>}<button className="primary-btn full" disabled={busy || !email || !password || (signup && !nickname)} onClick={submit}>{busy ? '처리 중...' : signup ? '가입하기' : '이메일로 로그인'}</button><button className="text-btn" onClick={() => setSignup(!signup)}>{signup ? '이미 계정이 있나요? 로그인' : '처음이신가요? 회원가입'}</button></div></div>
 }
 
-function MobileNav() { return <nav className="mobile-nav"><NavLink to="/create"><Plus /><span>CREATE</span></NavLink><NavLink to="/review"><Star /><span>REVIEW</span></NavLink><NavLink to="/board"><Search /><span>BOARD</span></NavLink><NavLink to="/my-crate"><Disc3 /><span>MY CRATE</span></NavLink></nav> }
+function MobileNav() { return <nav className="mobile-nav"><NavLink to="/create"><Plus /><span>CREATE</span></NavLink><NavLink to="/review"><Star /><span>REVIEW</span></NavLink><NavLink to="/explore"><Search /><span>EXPLORE</span></NavLink><NavLink to="/my-crate"><Disc3 /><span>MY CRATE</span></NavLink></nav> }
 
 export default App
