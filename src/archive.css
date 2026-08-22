@@ -806,6 +806,11 @@
   margin-top:8px;
   border:1px solid var(--line);
 }
+.paste-cover-hint{
+  margin:7px 0 0;
+  color:var(--muted);
+  font-size:9px;
+}
 .album-results.unified-results article{
   grid-template-columns:48px minmax(0,1fr) auto;
   align-items:center;
