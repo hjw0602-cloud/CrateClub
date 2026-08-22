@@ -807,27 +807,23 @@
   border:1px solid var(--line);
 }
 .album-results.unified-results article{
-  grid-template-columns:48px minmax(0,1fr);
-  align-items:start;
+  grid-template-columns:48px minmax(0,1fr) auto;
+  align-items:center;
 }
-.result-slot-actions{
-  grid-column:1/-1;
-  display:grid!important;
-  grid-template-columns:repeat(9,minmax(0,1fr));
-  gap:5px;
-  margin-top:6px;
-}
-.album-results .result-slot-actions button{
+.album-results.unified-results>article>button{
+  display:flex;
+  align-items:center;
   justify-content:center;
-  gap:3px;
-  min-height:30px;
+  gap:4px;
+  min-height:34px;
+  padding:0 12px;
   border:1px solid var(--line);
   border-radius:7px;
   background:var(--panel);
   color:var(--ink);
-  font-size:8px;
+  font-size:9px;
 }
-.album-results .result-slot-actions button.filled{
+.album-results.unified-results>article>button.filled{
   border-color:var(--accent);
   background:color-mix(in srgb,var(--accent) 13%,var(--panel));
 }
@@ -846,8 +842,11 @@
   .album-slot-picker.slot-overview{
     grid-template-columns:1fr!important;
   }
-  .result-slot-actions{
-    grid-template-columns:repeat(3,minmax(0,1fr));
+  .album-results.unified-results article{
+    grid-template-columns:44px minmax(0,1fr);
+  }
+  .album-results.unified-results>article>button{
+    grid-column:1/-1;
   }
 }
 .print-record-halo .halo-hero{
