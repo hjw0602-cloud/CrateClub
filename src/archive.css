@@ -688,6 +688,100 @@
 .print-record-halo figure:not(.halo-hero):before{
   display:none;
 }
+
+/* 2026-08-22: calmer landing and inline album replacement flow */
+.archive-landing{
+  --archive-signal:#7de6f7;
+}
+.landing-hero{
+  min-height:min(720px,calc(100vh - 78px));
+  padding-top:48px;
+  padding-bottom:48px;
+}
+.landing-hero:after,
+.landing-result:after,
+.landing-templates article:after,
+.h4-manifesto:after{
+  display:none;
+}
+.landing-result:before{
+  display:none;
+}
+.landing-copy:before{
+  margin-bottom:24px;
+}
+.landing-copy h1{
+  max-width:640px;
+  font-size:clamp(42px,5.1vw,76px);
+  line-height:.95;
+  letter-spacing:-.06em;
+}
+.landing-copy>div{
+  margin-top:28px;
+}
+.landing-flow>a{
+  border-bottom:0;
+  padding-bottom:0;
+}
+.h4-manifesto em{
+  color:var(--archive-signal);
+}
+.album-slot-picker.inline-search{
+  gap:8px;
+  border-top:0;
+}
+.album-slot-picker.inline-search>article{
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+  background:transparent;
+}
+.album-slot-picker.inline-search>article.active{
+  border-color:color-mix(in srgb,var(--accent) 55%,var(--line));
+  background:var(--soft);
+}
+.album-slot-picker.inline-search>article>button{
+  width:100%;
+  border-bottom:0;
+  grid-template-columns:34px 56px minmax(0,1fr);
+  padding:10px;
+}
+.album-slot-picker.inline-search>article.active>button{
+  box-shadow:inset 3px 0 var(--accent);
+}
+.slot-search-panel{
+  padding:0 10px 12px 56px;
+}
+.slot-search-panel .album-search{
+  background:var(--paper);
+  border:1px solid var(--line);
+}
+.slot-search-panel .album-results{
+  max-height:330px;
+  overflow:auto;
+  padding-right:4px;
+}
+.slot-search-panel .album-results article{
+  grid-template-columns:44px 1fr auto;
+  padding:7px 0;
+}
+.slot-search-panel .album-results img{
+  width:44px;
+  height:44px;
+}
+@media(max-width:640px){
+  .landing-hero{
+    padding-top:38px;
+    padding-bottom:56px;
+  }
+  .landing-copy h1{
+    font-size:42px;
+    max-width:360px;
+  }
+  .slot-search-panel{
+    padding-left:10px;
+  }
+}
 .print-record-halo .halo-hero{
   width:42%;
   left:29%;
