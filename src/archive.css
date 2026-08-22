@@ -769,6 +769,68 @@
   width:44px;
   height:44px;
 }
+.album-slot-picker.slot-overview{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:8px;
+  margin:10px 0 14px;
+  border-top:0;
+}
+.album-slot-picker.slot-overview button{
+  grid-template-columns:26px 44px minmax(0,1fr);
+  gap:8px;
+  padding:8px;
+  border:1px solid var(--line);
+  border-radius:10px;
+}
+.album-slot-picker.slot-overview button.active{
+  border-color:var(--accent);
+  box-shadow:inset 0 0 0 1px var(--accent);
+}
+.album-slot-picker.slot-overview button>b{
+  width:22px;
+  height:22px;
+  font-size:9px;
+}
+.album-slot-picker.slot-overview img{
+  width:44px;
+  height:44px;
+}
+.album-slot-picker.slot-overview span{
+  font-size:10px;
+}
+.album-slot-picker.slot-overview small{
+  font-size:8px;
+}
+.album-search.unified-search{
+  margin-top:8px;
+  border:1px solid var(--line);
+}
+.album-results.unified-results article{
+  grid-template-columns:48px minmax(0,1fr);
+  align-items:start;
+}
+.result-slot-actions{
+  grid-column:1/-1;
+  display:grid!important;
+  grid-template-columns:repeat(9,minmax(0,1fr));
+  gap:5px;
+  margin-top:6px;
+}
+.album-results .result-slot-actions button{
+  justify-content:center;
+  gap:3px;
+  min-height:30px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  background:var(--panel);
+  color:var(--ink);
+  font-size:8px;
+}
+.album-results .result-slot-actions button.filled{
+  border-color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 13%,var(--panel));
+}
 @media(max-width:640px){
   .landing-hero{
     padding-top:38px;
@@ -780,6 +842,12 @@
   }
   .slot-search-panel{
     padding-left:10px;
+  }
+  .album-slot-picker.slot-overview{
+    grid-template-columns:1fr!important;
+  }
+  .result-slot-actions{
+    grid-template-columns:repeat(3,minmax(0,1fr));
   }
 }
 .print-record-halo .halo-hero{
@@ -812,7 +880,7 @@
 
 /* Keep CREATE choices readable as lists across every breakpoint. */
 .create-control-block .template-control .preview-template-switcher,
-.create-control-block .album-slot-picker{
+.create-control-block .album-slot-picker:not(.slot-overview){
   grid-template-columns:minmax(0,1fr)!important;
 }
 
