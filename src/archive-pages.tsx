@@ -52,7 +52,7 @@ export function CreatePage({ catalog: releases }: { catalog: typeof import('./da
   const availableReleases = useMemo(() => [...releases, ...addedReleases.filter(item => !releases.some(release => release.id === item.id))], [releases, addedReleases])
   const normalizedQuery = query.trim().toLowerCase()
   const localMatches = availableReleases.filter(item => !normalizedQuery || `${item.title} ${item.artist} ${item.genres.join(' ')}`.toLowerCase().includes(normalizedQuery))
-  const visibleReleases: SearchRelease[] = normalizedQuery.length < 2 ? localMatches.slice(0, 12) : [...localMatches, ...searchResults.filter(item => !localMatches.some(local => local.title.toLowerCase() === item.title.toLowerCase() && local.artist.toLowerCase() === item.artist.toLowerCase()))].slice(0, 12)
+  const visibleReleases: SearchRelease[] = normalizedQuery.length < 2 ? [] : [...localMatches, ...searchResults.filter(item => !localMatches.some(local => local.title.toLowerCase() === item.title.toLowerCase() && local.artist.toLowerCase() === item.artist.toLowerCase()))].slice(0, 12)
   useEffect(() => {
     if (normalizedQuery.length < 2) { setSearchResults([]); setSearching(false); setSearchError(''); return }
     const controller = new AbortController()
