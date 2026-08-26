@@ -1005,10 +1005,21 @@
 
 @media(max-width:640px){
   .create-page{
-    padding-top:14px;
+    padding-top:0;
     padding-left:12px;
     padding-right:12px;
-    padding-bottom:76px;
+    padding-bottom:0;
+  }
+  /* Mobile studio follows the Topsters model: full canvas first, tools second.
+     The page headline and global dock otherwise use up the editing viewport. */
+  .create-heading{
+    display:none;
+  }
+  .app-shell:has(.create-page) .mobile-nav{
+    display:none;
+  }
+  .app-shell:has(.create-page) main{
+    padding-bottom:0;
   }
   .create-workspace{
     gap:10px;
@@ -1017,15 +1028,15 @@
     display:none;
   }
   .mobile-live-preview{
-    position:sticky;
-    top:58px;
+    position:relative;
+    top:auto;
     z-index:6;
     display:block;
     margin:0 -12px;
-    padding:6px 12px 10px;
+    padding:8px 12px 12px;
     background:color-mix(in srgb,var(--paper) 94%,transparent);
     border-bottom:1px solid var(--line);
-    backdrop-filter:blur(18px);
+    backdrop-filter:none;
   }
   .mobile-live-preview>header{
     margin-bottom:6px;
@@ -1055,14 +1066,18 @@
     justify-content:center;
   }
   .mobile-preview-canvas>.archive-print{
-    width:min(100%,300px);
-    max-height:42vh;
+    /* Do not cap height: it crops a 4:5 CRATEPRINT rather than scaling it. */
+    width:min(100%,296px);
+    max-height:none;
     box-shadow:0 12px 28px #0004;
   }
+  .mobile-preview-canvas>.archive-print.ratio-9-16{width:min(100%,214px)}
+  .mobile-preview-canvas>.archive-print.ratio-1-1{width:min(100%,296px)}
+  .mobile-preview-canvas>.archive-print.ratio-16-9{width:min(100%,356px)}
   .mobile-create-studio{
     display:block;
     order:1;
-    min-height:38vh;
+    min-height:0;
     border:1px solid var(--line);
     border-radius:18px 18px 0 0;
     background:var(--panel);
