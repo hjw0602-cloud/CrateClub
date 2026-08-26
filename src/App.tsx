@@ -22,6 +22,24 @@ function usePersisted<T>(key: string, initial: T) {
   return [value, setValue] as const
 }
 
+function readLocalArray<T>(key: string): T[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) || '[]')
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function writeLocalArray<T>(key: string, value: T[]) {
+  localStorage.setItem(key, JSON.stringify(value))
+}
+
+function dateStamp() {
+  const now = new Date()
+  return `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`
+}
+
 function App() {
   const [dark, setDark] = usePersisted('cd-dark', false)
   const backend = useBackend()
@@ -270,6 +288,7 @@ function ReleasePage(ctx: AppContext) {
   const { id } = useParams(); const release = ctx.catalog.find(r => r.id === id) || ctx.catalog[0] || releases[0]
   const [sort, setSort] = useState('최신순'); const [rating, setRating] = useState(8.0); const [text, setText] = useState('')
   const [crateStatus, setCrateStatus] = useState('')
+  const [savedReview, setSavedReview] = useState('')
   const reviewList = useMemo(() => {
     const list = ctx.reviews.filter(r => r.releaseId === release.id)
     if (sort === '베스트') return [...list].sort((a, b) => b.likes - a.likes)
@@ -278,13 +297,20 @@ function ReleasePage(ctx: AppContext) {
     if (sort === '팔로잉') return list.filter(r => ctx.follows.includes(r.userId))
     return list
   }, [ctx.reviews, ctx.follows, release.id, sort])
-  const submit = async () => { if (!ctx.loggedIn) return ctx.openAuth(); await ctx.addReview(release.id, rating, text.trim()); setText('') }
+  const submit = async () => {
+    const entry = { id: `log-${Date.now()}`, releaseId: release.id, score: rating, text: text.trim(), status: crateStatus || '들었어요', createdAt: dateStamp() }
+    const previous = readLocalArray<typeof entry>('cd-listening-log')
+    writeLocalArray('cd-listening-log', [entry, ...previous.filter(item => item.releaseId !== release.id)].slice(0, 80))
+    if (ctx.loggedIn) await ctx.addReview(release.id, rating, text.trim())
+    setText('')
+    setSavedReview('MY CRATE의 Listening Log에 저장됐습니다.')
+  }
   return <div className="release-page">
     <section className="release-hero band"><img className="release-cover" src={release.cover} alt="" /><div className="release-info"><div className="tags"><span className="type-tag static">{release.type}</span>{release.genres.map(g => <span key={g}>{g}</span>)}</div><h1>{release.title}</h1><h2>{release.artist}</h2><p>{release.description}</p><div className="release-score"><strong>{release.score.toFixed(1)}</strong><div><span>COMMUNITY SCORE</span><b>{release.ratings}개의 평가</b>{release.ratings < 10 && <small>평가가 더 필요해요</small>}</div></div><div className="stream-links">{release.links.spotify && <a href={release.links.spotify} target="_blank"><Play size={15} /> Spotify</a>}{release.links.apple && <a href={release.links.apple} target="_blank"><Headphones size={15} /> Apple Music</a>}{release.links.youtube && <a href={release.links.youtube} target="_blank"><Play size={15} /> YouTube Music</a>}</div></div>
       <div className="track-list"><span>TRACKLIST</span>{release.tracks.map((t, i) => <div key={t}><b>{String(i + 1).padStart(2, '0')}</b><span>{t}</span></div>)}</div>
     </section>
     <section className="album-social-entry section-wrap"><div><span>ALBUM LOUNGE</span><h2>지금 이 앨범을 듣는 사람들과 이야기하세요</h2><p>가벼운 감상은 라운지에서 나누고, 간직할 음악은 내 크레이트에 담아 기록하세요.</p><div className="lounge-peek"><span className="avatar mini">SA</span><span className="avatar mini">LN</span><span className="avatar mini">80</span><b>지금 23명 참여 중</b></div></div><div><Link className="primary-btn lounge-btn" to={`/release/${release.id}/lounge`}><MessageCircle size={17} /> 라운지 참여</Link><label className="crate-status-select"><Disc3 size={16} /><select value={crateStatus} onChange={event => setCrateStatus(event.target.value)}><option value="">내 크레이트에 담기</option><option>듣고 싶어요</option><option>듣는 중</option><option>들었어요</option></select><ChevronDown size={14} /></label><button className="outline-btn" onClick={() => document.getElementById('review-compose')?.scrollIntoView({ behavior: 'smooth' })}><PenLine size={16} /> 평가하기</button></div></section>
-    <section id="review-compose" className="review-compose section-wrap"><div><span>MY RATING</span><div className="rating-input"><strong>{rating.toFixed(1)}</strong><input aria-label="앨범 평점" type="range" min="0" max="10" step="0.1" value={rating} onChange={e => setRating(+e.target.value)} /></div></div><div className="write-review"><textarea value={text} onChange={e => setText(e.target.value.slice(0, 300))} placeholder="이 음악을 한 문장으로 남겨보세요." /><div><small>{text.length}/300</small><button className="primary-btn" onClick={submit}><PenLine size={16} /> 평가 남기기</button></div></div></section>
+    <section id="review-compose" className="review-compose section-wrap"><div><span>MY RATING</span><div className="rating-input"><strong>{rating.toFixed(1)}</strong><input aria-label="앨범 평점" type="range" min="0" max="10" step="0.1" value={rating} onChange={e => setRating(+e.target.value)} /></div></div><div className="write-review"><textarea value={text} onChange={e => setText(e.target.value.slice(0, 300))} placeholder="이 음악을 한 문장으로 남겨보세요." /><div><small>{text.length}/300</small><button className="primary-btn" onClick={submit}><PenLine size={16} /> 평가 남기기</button></div>{savedReview && <div className="review-saved-note"><b>{savedReview}</b><Link to="/my-crate">MY CRATE에서 보기 <ChevronRight size={14} /></Link></div>}</div></section>
     <section className="section-wrap reviews-section"><div className="review-head"><h2>한줄평 <span>{reviewList.length}</span></h2><select value={sort} onChange={e => setSort(e.target.value)}>{['최신순', '베스트', '팔로잉', '별점 높은순', '별점 낮은순'].map(s => <option key={s}>{s}</option>)}</select></div>{reviewList.map(r => <ReviewItem key={r.id} review={r} {...ctx} />)}</section>
   </div>
 }

@@ -888,3 +888,117 @@
   grid-template-columns:minmax(0,1fr)!important;
 }
 
+.landing-start{
+  padding-top:70px;
+  padding-bottom:30px;
+}
+.landing-start header{
+  max-width:720px;
+  margin-bottom:22px;
+}
+.landing-start header>span{
+  font-size:9px;
+  letter-spacing:.22em;
+  font-weight:900;
+  color:var(--accent);
+}
+.landing-start h2{
+  margin:10px 0 0;
+  font-size:clamp(30px,4vw,52px);
+  line-height:1;
+  letter-spacing:-.045em;
+}
+.landing-start>div{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.landing-start a{
+  min-height:180px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:22px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:var(--panel);
+}
+.landing-start a:hover{
+  border-color:var(--accent);
+}
+.landing-start a>b{
+  color:var(--accent);
+  font-size:10px;
+  letter-spacing:.18em;
+}
+.landing-start h3{
+  margin:0;
+  font-size:24px;
+}
+.landing-start p{
+  margin:0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.7;
+}
+.landing-start svg{
+  margin-top:auto;
+}
+
+.save-flow-notice{
+  margin-top:16px;
+  padding:14px;
+  border:1px solid color-mix(in srgb,var(--accent) 55%,var(--line));
+  border-radius:14px;
+  background:color-mix(in srgb,var(--accent) 8%,var(--panel));
+}
+.save-flow-notice b{
+  display:block;
+  margin-bottom:4px;
+}
+.save-flow-notice p{
+  margin:0 0 12px;
+  color:var(--muted);
+  font-size:11px;
+}
+.save-flow-notice>div{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.save-flow-notice a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:32px;
+  padding:0 12px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  font-size:10px;
+  font-weight:900;
+}
+
+.listening-log-callout{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+  padding:12px 14px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--panel);
+}
+.listening-log-callout span{
+  color:var(--muted);
+  font-size:11px;
+}
+
+@media(max-width:640px){
+  .landing-start>div{
+    grid-template-columns:1fr;
+  }
+  .landing-start a{
+    min-height:145px;
+  }
+}
+
