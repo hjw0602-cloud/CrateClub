@@ -1005,10 +1005,12 @@
 
 @media(max-width:640px){
   .create-page{
+    height:calc(100dvh - 72px);
     padding-top:0;
     padding-left:12px;
     padding-right:12px;
     padding-bottom:0;
+    overflow:hidden;
   }
   /* Mobile studio follows the Topsters model: full canvas first, tools second.
      The page headline and global dock otherwise use up the editing viewport. */
@@ -1022,17 +1024,21 @@
     padding-bottom:0;
   }
   .create-workspace{
+    height:100%;
     gap:10px;
+    overflow:hidden;
   }
   .create-controls{
     display:none;
   }
   .mobile-live-preview{
-    /* Keep the entire canvas in view while the controls below are edited. */
-    position:sticky;
-    top:72px;
-    z-index:45;
+    /* A real split workspace, not a sticky overlay: the canvas and editor
+       always coexist and neither one covers the other. */
+    position:relative;
+    top:auto;
+    z-index:1;
     display:block;
+    flex:0 0 calc(45% - 5px);
     margin:0 -12px;
     padding:8px 12px 12px;
     background:color-mix(in srgb,var(--paper) 94%,transparent);
@@ -1065,26 +1071,30 @@
   }
   .mobile-preview-canvas{
     justify-content:center;
+    height:calc(100% - 31px);
+    align-items:center;
   }
   .mobile-preview-canvas>.archive-print{
-    /* Do not cap height: it crops a 4:5 CRATEPRINT rather than scaling it. */
-    width:min(100%,296px);
+    /* Scale the complete artwork into its pane; never crop it. */
+    width:min(100%,calc((100dvh - 72px) * .45 * .8));
     max-height:none;
     box-shadow:0 12px 28px #0004;
   }
-  .mobile-preview-canvas>.archive-print.ratio-9-16{width:min(100%,214px)}
-  .mobile-preview-canvas>.archive-print.ratio-1-1{width:min(100%,296px)}
-  .mobile-preview-canvas>.archive-print.ratio-16-9{width:min(100%,356px)}
+  .mobile-preview-canvas>.archive-print.ratio-9-16{width:min(100%,calc((100dvh - 72px) * .45 * .5625))}
+  .mobile-preview-canvas>.archive-print.ratio-1-1{width:min(100%,calc((100dvh - 72px) * .45))}
+  .mobile-preview-canvas>.archive-print.ratio-16-9{width:min(100%,calc((100dvh - 72px) * .45 * 1.7778))}
   .mobile-create-studio{
     display:block;
     order:1;
+    flex:1 1 auto;
     min-height:0;
     position:relative;
     z-index:1;
     border:1px solid var(--line);
     border-radius:18px 18px 0 0;
     background:var(--panel);
-    overflow:hidden;
+    overflow-y:auto;
+    overscroll-behavior:contain;
   }
   .mobile-studio-tabs{
     z-index:4;
