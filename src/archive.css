@@ -1028,9 +1028,10 @@
     display:none;
   }
   .mobile-live-preview{
-    position:relative;
-    top:auto;
-    z-index:6;
+    /* Keep the entire canvas in view while the controls below are edited. */
+    position:sticky;
+    top:72px;
+    z-index:45;
     display:block;
     margin:0 -12px;
     padding:8px 12px 12px;
@@ -1078,6 +1079,8 @@
     display:block;
     order:1;
     min-height:0;
+    position:relative;
+    z-index:1;
     border:1px solid var(--line);
     border-radius:18px 18px 0 0;
     background:var(--panel);
